@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:my_flutter_app/pages/main_tab_container.dart';
+import 'package:my_flutter_app/pages/new_order.dart';
 
 final List<String> entriesA = <String>['A', 'B', 'C'];
 
 final List<String> entriesB = <String>['1', '2', '3'];
 
 class HomePage extends StatelessWidget{
+
+
+  floatingActionAdd(BuildContext context){
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => NewOrder()),
+    );
+  }
+
   @override
   Widget build(BuildContext context){
-    return new Material(
-      child: Padding(
+    return new Scaffold(
+      body: Padding(
         padding: EdgeInsets.only(top: 60.0),
         child: Column(
           children: [
@@ -28,7 +39,13 @@ class HomePage extends StatelessWidget{
             )
           ]
         ),
-      )
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: (){
+          floatingActionAdd(context);
+        },
+      ),
     );
   }
 

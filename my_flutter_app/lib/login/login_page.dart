@@ -4,6 +4,8 @@ import 'package:my_flutter_app/CustomIcons.dart';
 import 'package:my_flutter_app/Widgets/SocialIcons.dart';
 import 'package:my_flutter_app/login/LoginForm.dart';
 import 'package:my_flutter_app/pages/main_tab_container.dart';
+
+
 class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => new _LoginPageState();
@@ -19,7 +21,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   sampleFunction(){
- 
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => TabViewContainer()),
