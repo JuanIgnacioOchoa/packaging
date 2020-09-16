@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'dart:async';
-
-import 'package:multi_image_picker/multi_image_picker.dart';
 
 class NewOrder extends StatefulWidget{
   @override
@@ -12,7 +9,7 @@ class NewOrder extends StatefulWidget{
 }
 
 class _NewOrderState extends State<NewOrder>{
-  List<Asset> images = List<Asset>();
+  //List<Asset> images = List<Asset>();
   String _error;
   File _image;
   final _picker = ImagePicker();
@@ -99,7 +96,7 @@ class _NewOrderState extends State<NewOrder>{
       print('_image: $_image');
     });
   }
-
+/*
   Future<void> _getImages() async {
     setState(() {
       images = List<Asset>();
@@ -127,7 +124,7 @@ class _NewOrderState extends State<NewOrder>{
       if (error == null) _error = 'No Error Dectected';
     });
   }
-
+*/
   @override
   Widget build(BuildContext context){
     return new Scaffold(
