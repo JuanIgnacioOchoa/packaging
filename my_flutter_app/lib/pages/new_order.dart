@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:multi_image_picker/multi_image_picker.dart';
 import 'dart:io';
 
 class NewOrder extends StatefulWidget{
@@ -9,7 +10,7 @@ class NewOrder extends StatefulWidget{
 }
 
 class _NewOrderState extends State<NewOrder>{
-  //List<Asset> images = List<Asset>();
+  List<Asset> images = List<Asset>();
   String _error;
   File _image;
   final _picker = ImagePicker();
@@ -31,8 +32,8 @@ class _NewOrderState extends State<NewOrder>{
   
   _addOrderReceipt(){
     print("Add receipt");
-    _getImage();
-    //_getImages();
+    //_getImage();
+    _getImages();
   }
 
   _addNewElement(){
@@ -96,19 +97,17 @@ class _NewOrderState extends State<NewOrder>{
       print('_image: $_image');
     });
   }
-/*
+
   Future<void> _getImages() async {
     setState(() {
-      images = List<Asset>();
+      //images = List<Asset>();
     });
 
-    List<Asset> resultList;
+    List<Asset> resultList = List<Asset>();
     String error;
 
     try {
-      resultList = await MultiImagePicker.pickImages(
-        maxImages: 300,
-      );
+      resultList = await MultiImagePicker.pickImages(maxImages: 200);
     } on Exception catch (e) {
       error = e.toString();
     }
@@ -124,7 +123,7 @@ class _NewOrderState extends State<NewOrder>{
       if (error == null) _error = 'No Error Dectected';
     });
   }
-*/
+
   @override
   Widget build(BuildContext context){
     return new Scaffold(
@@ -153,7 +152,10 @@ class _NewOrderState extends State<NewOrder>{
                 child: Icon(Icons.add),
               ),
             ),
-            _showImage(),
+            Container(
+              height: 50.0,
+              child: buildGridView(),
+            ),
             Padding(
               padding: EdgeInsets.only(bottom: 10.0),
               child: RaisedButton(
@@ -217,6 +219,24 @@ class _NewOrderState extends State<NewOrder>{
     );
   }
 
+  Widget buildGridView() {
+    if(images.length <= 0){
+      return SizedBox.shrink();
+    }
+
+    return GridView.count(
+      crossAxisCount: 3,
+      children: List.generate(images.length, (index) {
+        Asset asset = images[index];
+        return AssetThumb(
+          asset: asset,
+          width: 50,
+          height: 50,
+        );
+      }),
+    );
+  }
+
   Widget _showImage(){
     if(_image != null){
       return Container(
@@ -227,8 +247,8 @@ class _NewOrderState extends State<NewOrder>{
     }
     return SizedBox.shrink();
   }
-  Widget getExpandableWidget(int index){
 
+  Widget getExpandableWidget(int index){
     return(
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,6 +270,7 @@ class _NewOrderState extends State<NewOrder>{
       )
     );
   }
+
   List<Widget> getNewOrderWidgets(int index){
     return [
       TextField(
@@ -297,4 +318,5 @@ class _NewOrderState extends State<NewOrder>{
       ),
     ];
   }
+
 }

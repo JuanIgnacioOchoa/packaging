@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+typedef void StringCallback(String val);
 class LoginForm extends StatelessWidget {
+  final StringCallback callbackUsernameChange;
+  final StringCallback callbackPasswordChange;
+  LoginForm({this.callbackUsernameChange, this.callbackPasswordChange});
   @override
   Widget build(BuildContext context) {
     return new Container(
@@ -39,6 +43,7 @@ class LoginForm extends StatelessWidget {
               decoration: InputDecoration(
                   hintText: "username",
                   hintStyle: TextStyle(color: Colors.white, fontSize: 12.0)),
+                  onChanged: callbackUsernameChange,
             ),
             SizedBox(
               height: ScreenUtil().setHeight(30),
@@ -48,6 +53,7 @@ class LoginForm extends StatelessWidget {
               decoration: InputDecoration(
                   hintText: "Password",
                   hintStyle: TextStyle(color: Colors.white, fontSize: 12.0)),
+                  onChanged: callbackPasswordChange,
             ),
             SizedBox(
               height: ScreenUtil().setHeight(35),

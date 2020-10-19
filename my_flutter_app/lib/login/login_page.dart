@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:my_flutter_app/CustomIcons.dart';
-import 'package:my_flutter_app/Widgets/SocialIcons.dart';
+import 'dart:convert';
+import 'package:my_flutter_app/api/users/index.dart';
+import 'package:my_flutter_app/common/alert_dialog.dart';
+import 'package:my_flutter_app/common/loading.dart';
 import 'package:my_flutter_app/login/LoginForm.dart';
+import 'package:my_flutter_app/login/register/register_page.dart';
 import 'package:my_flutter_app/pages/main_tab_container.dart';
+import 'package:my_flutter_app/states/user.dart';
+import 'package:provider/provider.dart';
 
 
 class LoginPage extends StatefulWidget {
@@ -12,19 +17,157 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final HttpUserService _httpUserService = HttpUserService();
   bool _isSelected = false;
-
+  String _username = '';
+  String _password = '';
+  bool _loading;
+    @override
+  void initState() {
+      super.initState();
+      _loading = false;
+  }
   void _radio() {
     setState(() {
       _isSelected = !_isSelected;
     });
   }
 
-  sampleFunction(){
+  login(value){
+    if(value['statusOperation'].toString() != null &&  value['statusOperation']['code'].toString() == '0'){
+      //print("ABC: ${value['data']}");
+      setState(() {
+        _loading = false;
+      });
+      /*
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MultiProvider(
+            providers: [
+              ChangeNotifierProvider(create: (_) => User(value['data'])),
+            ],
+            child: MaterialApp(
+              home: TabViewContainer(),
+              debugShowCheckedModeBanner: false,
+            ),
+          ),
+        ),
+      );
+      */
+      final user = Provider.of<User>(context, listen: false);
+      user.setData(value['data']); 
+      Navigator.push(
+        context, 
+        MaterialPageRoute(builder: (context) => TabViewContainer()),
+      );
+    } else {
+      const title = Text("Error de Ingreso");
+      const body = [
+        Text("Usuario y/o Contraseña incorrecto")
+      ];
+      setState(() {
+        _loading = false;
+      });
+      CustomAlertDialog(context,title, body, 1);
+    }
+  }
+
+  loginError(onError){
+    const title = Text("Error de Conexion");
+    var body = [
+      Text("Error al intentar conectarse con el servidor"),
+      Text(onError.toString()),
+    ];
+    setState(() {
+      _loading = false;
+    });
+    CustomAlertDialog(context,title, body, 1);
+  }
+
+  register(){
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => TabViewContainer()),
+      MaterialPageRoute(
+        builder: (context) => RegisterPage(),
+      ),
     );
+  }
+
+Future<Map<String, dynamic>> onSubmit() async{  
+    if(_username == 'juanalvaro' && _password == 'infinito'){
+      const title = Text("TE AMO!!!");
+      const body = [
+        Text("Quiero que sepas que eres la mujer que mas admiro y mas aprecio."),
+        Text("Me implusas a ser mejor persona"),
+        Text("Me apoyas incondicionalmente"),
+        Text("Te preocupas por mi"),
+        Text("Me ensenaste el valor de uno mismo"),
+        Text("Eres super hermosa"),
+        Text("Me emociona estar contigo"),
+        Text("Quiero estar contigo hasta el final"),
+        Text("Me emociona un futuro contigo"),
+        Text("Amo la pasion que das"),
+        Text("Amo el cariño que das"),
+        Text("Amo tu manera de amar"),
+        Text("Amo lo que hemos crecido juntos"),
+        Text("Te amo un monton"),
+        Text("Estas son unas de las razones que tengo para amarte"),
+        Text("Obvio hay mas pero no hay tiempo ni espacio para decirtelas, solo una vida"),
+        Text("Que me ilusiona la idea de que tal vez la tenga para decirtelas"),
+        Text("Tenia la idea de hacer algo mas bonito para decirte esto, pero no tuve el tiempo"),
+        Text("Pero la idea esta, y cuando yo la tengo nada me detiene para hacerlo."),
+        Text("Cuando se presente la oportunidad lo hare"),
+        Text("Pero he andado full en chamba y mas en ayudarte a cumplir una meta"),
+        Text("Se que la vida no es perfecta y que ni tu ni yo lo somos."),
+        Text("Pero quiero aprender y mejorar y lo quiero hacer contigo, si me dejas"),
+        Text("Espero estar el uno con el otro por mucho tiempo mas, aunque peleemos y nos enojemos"),
+        Text("de eso se trata tambien pero al final que la alegria y el amor sea mayor"),
+        Text("Te amo mucho"),
+        Text("Te quiero preguntar una cosa"),
+        Text("Te quieres ca...."),
+        Text("Me harias el hombre mas feliz si dices que si"),
+        Text("Quieres ser mi novia?"),
+      ];
+      CustomAlertDialog(context,title, body, 1);
+      return null;
+    }
+    setState(() {
+      _loading = true;
+    });
+    try{
+      var body = json.encode({"username": _username, 'password': _password});
+      var a = _httpUserService.loginUser( body );
+      a.then(
+        (value) => {
+          login(value)
+      }
+      );
+      a.catchError((onError) => {
+       loginError(onError)
+      });
+      return a;
+    } on Exception catch (exception) {
+      // only executed if error is of type Exception
+      setState(() {
+        _loading = false;
+      });
+      throw 'Exception';
+    } catch (error) {
+      setState(() {
+        _loading = false;
+      });
+      throw 'Error'; // executed for errors of all types other than Exception
+    }
+    
+  }
+
+  onChangeUsername(data){
+    _username = data;
+  }
+
+  onChangePassword(data){
+    _password = data; 
   }
 
   Widget radioButton(bool isSelected) => Container(
@@ -59,17 +202,43 @@ class _LoginPageState extends State<LoginPage> {
     return new Scaffold(
       backgroundColor: Colors.white,
       resizeToAvoidBottomPadding: true,
-      body: Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          Column(
+      body: _loading ? Loading() : 
+      FutureBuilder(  
+        builder: (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
+          return renderLogin();
+        }
+      )
+    );
+  }
+
+  Widget renderBackground(){
+    return Column(
             children: <Widget>[
               Padding(
                 padding: EdgeInsets.only(top: 80.0),
-                child: Image.asset("assets/images/fondo.jpeg"),
+                child: Image.asset(
+                  "assets/images/fondo.jpeg",
+                ),
               ),
             ],
-          ),
+          );
+  }
+
+  Widget renderLoading(){
+    return Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          renderBackground()
+        ],
+      );
+  }
+  
+
+  Widget renderLogin(){
+    return Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          renderBackground(),
           SingleChildScrollView(
             child: Padding(
               padding: EdgeInsets.only(left: 28.0, right: 28.0, top: 0.0),
@@ -81,16 +250,19 @@ class _LoginPageState extends State<LoginPage> {
                         padding: EdgeInsets.only(top: 40.0),
                         child: Image.asset(
                         "assets/images/logo.png",
-                        width: ScreenUtil().setWidth(110),
-                        height: ScreenUtil().setHeight(100),
+                        width: ScreenUtil().setWidth(200),
+                        height: ScreenUtil().setHeight(200),
                         ),
                       )
                     ],
                   ),
                   SizedBox(
-                    height: ScreenUtil().setHeight(180),
+                    height: ScreenUtil().setHeight(50),
                   ),
-                  LoginForm(),
+                  LoginForm(
+                    callbackUsernameChange: (val) => { this.onChangeUsername(val)},
+                    callbackPasswordChange: (val) => { this.onChangePassword(val)},
+                  ),
                   SizedBox(height: ScreenUtil().setHeight(40)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -134,7 +306,7 @@ class _LoginPageState extends State<LoginPage> {
                           child: Material(
                             color: Colors.transparent,
                             child: InkWell(
-                              onTap: () {},
+                              onTap: onSubmit,
                               child: RaisedButton(
                                 child: Center(
                                 child: Text("SIGNIN",
@@ -144,7 +316,6 @@ class _LoginPageState extends State<LoginPage> {
                                         fontSize: 18,
                                         letterSpacing: 1.0)),
                                 ),
-                                onPressed: sampleFunction,
                               )
                             ),
                           ),
@@ -157,6 +328,7 @@ class _LoginPageState extends State<LoginPage> {
                   SizedBox(
                     height: ScreenUtil().setHeight(40),
                   ),
+                  /*
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
@@ -182,7 +354,7 @@ class _LoginPageState extends State<LoginPage> {
                         onPressed: () {},
                       ),
                     ],
-                  ),
+                  ),*/
                   SizedBox(
                     height: ScreenUtil().setHeight(30),
                   ),
@@ -194,7 +366,7 @@ class _LoginPageState extends State<LoginPage> {
                         style: TextStyle(fontFamily: "Poppins-Medium"),
                       ),
                       InkWell(
-                        onTap: () {},
+                        onTap: () { register(); },
                         child: Text("SignUp",
                             style: TextStyle(
                                 color: Color(0xFF5d74e3),
@@ -205,9 +377,11 @@ class _LoginPageState extends State<LoginPage> {
                 ],
               ),
             ),
-          )
+          )       
+  
         ],
-      ),
-    );
+      );
+    
   }
+
 }

@@ -1,25 +1,29 @@
-
 import 'package:flutter/material.dart';
 import 'package:my_flutter_app/pages/home_page.dart';
+import 'package:my_flutter_app/states/user.dart';
+import 'package:provider/provider.dart';
 
-class TabViewContainer extends StatelessWidget{
+import 'config/configuration_page.dart';
+
+class  TabViewContainer extends StatelessWidget{
   Widget build(BuildContext context) {
-    return new MaterialApp(
-      color: Colors.yellow,
-      home: DefaultTabController(
+    
+    //print(user);
+    return new Scaffold(
+      body: DefaultTabController(
         length: 4,
         child: new Scaffold(
           body: TabBarView(
             children: [
               HomePage(),
               new Container(
-                color: Colors.orange,
+                child: Text('On Construction'),
+              ),
+              new Container(                
+                child: Text('On Construction'),
               ),
               new Container(
-                color: Colors.lightGreen,
-              ),
-              new Container(
-                color: Colors.red,
+                child: ConfigurationPage()
               ),
             ],
           ),
