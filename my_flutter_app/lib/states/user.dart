@@ -56,5 +56,9 @@ class User with ChangeNotifier{
     phone = null;
     idStatus = null;
     fullname = null;
+    addresses = [];
+
+    notifyListeners();
+    
   }
 }

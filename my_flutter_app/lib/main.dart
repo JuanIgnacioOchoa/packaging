@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_flutter_app/constants.dart';
 import 'package:my_flutter_app/login/login_page.dart';
 import 'package:my_flutter_app/states/user.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +20,10 @@ void main() => runApp(
     child: MaterialApp(
       home: LoginPage(),
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        accentColor: LIGHT_GREEN,
+        primaryColor: DARK_GREEN
       ),
-    )
-  );
+    ),
+  )
+);

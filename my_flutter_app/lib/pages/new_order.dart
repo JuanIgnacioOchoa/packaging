@@ -1,8 +1,21 @@
+
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
 import 'dart:io';
+import 'package:autocomplete_textfield/autocomplete_textfield.dart';
+import 'package:my_flutter_app/api/packages/index.dart';
+import 'package:my_flutter_app/api/proveedores/index.dart';
+import 'package:my_flutter_app/constants.dart';
+import 'package:my_flutter_app/states/proveedor.dart';
+import 'package:my_flutter_app/states/proveedores.dart';
+import 'package:my_flutter_app/states/user.dart';
+import 'package:provider/provider.dart';
+
+  
 
 class NewOrder extends StatefulWidget{
   @override
@@ -10,18 +23,25 @@ class NewOrder extends StatefulWidget{
 }
 
 class _NewOrderState extends State<NewOrder>{
+
+  final _formKey = [ new GlobalKey<FormState>() ];
+  final _formkKeyCurrency = [ new GlobalKey<FormState>() ];
+  GlobalKey<AutoCompleteTextFieldState<Proveedor>> autoCompleteKey = new GlobalKey();
+  final HttpPackagesService _httpPackagesService = HttpPackagesService();
+  final HttpSuppliersService _httpSuppliersService = HttpSuppliersService();
   List<Asset> images = List<Asset>();
   String _error;
   File _image;
   final _picker = ImagePicker();
-
+  Proveedores proveedores;
+  AutoCompleteTextField<Proveedor> searchTextField;
   final nameProductController = [ new TextEditingController() ];
   final linkProductController = [ new TextEditingController() ];
   final proveedorProductController = [ new TextEditingController() ];
   final priceProductController = [ new TextEditingController() ];
   final dimensionsProductController = [ new TextEditingController() ];
   final refProductController = [ new TextEditingController() ];
-  
+  var selectedSupplier = Proveedor({'id': 0, 'name': ''});
   final products = [ 0 ];
   int finalIndex = 0;
 
@@ -29,7 +49,13 @@ class _NewOrderState extends State<NewOrder>{
   double sendCost = 0.0;
   double total = 0.0;
 
+  String selectedCurrency = 'USD';
   
+  @override
+  void initState() {
+      super.initState();
+      _getSupliers();
+  }
   _addOrderReceipt(){
     print("Add receipt");
     //_getImage();
@@ -49,13 +75,62 @@ class _NewOrderState extends State<NewOrder>{
       priceProductController.add(new TextEditingController());
       dimensionsProductController.add(new TextEditingController());
       refProductController.add(new TextEditingController());
+      _formKey.add(new GlobalKey<FormState>());
     });
   }
 
-  _confirmOrder(){
+  _confirmOrder(user){
+    var success = true;
     for(var i = 0; i < products.length; i++){
-      print('Name:' + nameProductController[i].text);
+      //print('Name:' + nameProductController[i].text);
+      if (_formKey[i].currentState.validate()) {
+        // If the form is valid, display a Snackbar.
+      } else if(_formkKeyCurrency[i].currentState.validate()) {
+
+      }else {
+        success = false;
+      }
     }
+    if(!success){
+      return;
+    }
+
+    //for(var i = 0; i < products.length; i++){
+    //  print('Name:' + nameProductController[i].text);
+      
+      var map = new Map<String, dynamic>();
+      map['newPackage'] = 'true';
+      map["idUser"] = user.id;
+      map["idAddress"] = null;
+      map['referenceNumber'] = refProductController[0].text;
+      map['descrption'] = nameProductController[0].text;
+      map['quantity'] = '4';
+      map['totalCost'] = total;
+      map['shipCost'] = sendCost;
+      map['packageCost'] = subTotal;
+      map['idStatus'] = TRANSCURSO_ID;
+      map['currency'] = selectedCurrency;
+      print('------------');
+      print(searchTextField.textField.controller.text);
+      print(selectedSupplier.name);
+      if(searchTextField.textField.controller.text != '' && selectedSupplier.name != ''){
+        print("Abc:");
+        map['supplierName'] = selectedSupplier.name;
+        map["idSupplier"] = selectedSupplier.id;
+      }
+      var response = _httpPackagesService.postPackages(map, images);
+      response.then((value) => {
+        print("then: ${value}")
+      });
+      response.catchError((onError) {
+        print('error::: $onError');
+      });
+      response.whenComplete(() => {
+        print("Complete")
+      });
+      
+    //}
+
   }
 
   _deleteElement(index){
@@ -68,6 +143,7 @@ class _NewOrderState extends State<NewOrder>{
       priceProductController.removeAt(index);
       dimensionsProductController.removeAt(index);
       refProductController.removeAt(index);
+      _formKey.removeAt(index);
     });
     _costChange();
   }
@@ -124,8 +200,51 @@ class _NewOrderState extends State<NewOrder>{
     });
   }
 
+  _getSupliers() async {
+    try{
+      var response = await _httpSuppliersService.getPackages(null);
+      if(response.toString() != null && response['statusOperation'].toString() != null && response['statusOperation']['code'].toString() == '0'){
+        var data = response['data']['suppliers'];
+        //List<Proveedor> tmp = [];
+        for(var i = 0; i < data.length; i++){
+          proveedores.add(data[i]);
+        }
+        //proveedores.notifyListeners();
+      }
+    } catch (e){
+      print('Error::: $e');
+    }
+    /*
+    setState(() {
+      _loading = true;
+    });
+    try{
+      var body = json.encode({ "idUser": 1});
+      var response = _httpPackagesService.getPackages(body);
+      response.then((value) => {
+        loadPackagesSuccess(value)    
+      });
+      response.catchError((onError) => {
+        loadPackageError(onError)
+      });
+      return response;
+    } on Exception catch (exception) {
+      setState(() {
+        _loading = false;
+      });
+      throw 'Exception';
+    } catch (error) {
+      setState(() {
+        _loading = false;
+      });
+      throw 'Error';
+    }
+    */
+  }
   @override
   Widget build(BuildContext context){
+    proveedores = Provider.of<Proveedores>(context);
+    final user = Provider.of<User>(context, listen: false);
     return new Scaffold(
       appBar: AppBar(
         title: Text("Nueva Orden"),
@@ -138,20 +257,34 @@ class _NewOrderState extends State<NewOrder>{
         child: Column(
           children: [
             Expanded(
-              child: ListView.builder(
+              child: Form(
+                key: _formKey[0],
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: getNewOrderWidgets(0)
+                  )
+                )
+              )
+              //child: Column(
+              //  children: getNewOrderWidgets(0)
+              //)
+              
+              /*ListView.builder(
                 itemCount: products.length,
                 itemBuilder: (BuildContext context, int index) {
                   return getExpandableWidget(index);
                 }
-              ),
+              ),*/
             ),
+            /*
             Padding(
               padding: EdgeInsets.only(top: 20.0, bottom: 10.0),
               child: FloatingActionButton(
-                onPressed: (){ _addNewElement(); },
+                //onPressed: (){ _addNewElement(); },
                 child: Icon(Icons.add),
               ),
             ),
+            */
             Container(
               height: 50.0,
               child: buildGridView(),
@@ -210,7 +343,7 @@ class _NewOrderState extends State<NewOrder>{
                     )
                   ),
                 ),
-                onPressed: _confirmOrder,
+                onPressed: () {_confirmOrder(user);}
               ),
             )
           ]
@@ -256,14 +389,19 @@ class _NewOrderState extends State<NewOrder>{
           Padding(
             padding: EdgeInsets.only(top: 14.0),
             child: InkWell(
-              onTap: (){ _deleteElement(index); },
+              //onTap: (){ _deleteElement(index); },
               child: Icon(Icons.delete),
             ),
           ),
           Expanded(
             child: ExpansionTile(
-              title: Text("Nombre del Producto"),
-              children: getNewOrderWidgets(index),
+              title: Text("Orden"),
+              children: [
+                Form(
+                  key: _formKey[index],
+                  child: Column(children: getNewOrderWidgets(index),)
+                )
+              ],
             ),
           )
         ],
@@ -273,50 +411,137 @@ class _NewOrderState extends State<NewOrder>{
 
   List<Widget> getNewOrderWidgets(int index){
     return [
-      TextField(
+      TextFormField(
         controller: nameProductController[index],
         decoration: InputDecoration(
-          hintText: "Nombre del Producto",
+          hintText: "Descripción",
           hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
-      ),
-      TextField(
-        controller: linkProductController[index],
-        decoration: InputDecoration(
-          hintText: "Link del Producto",
-          hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
-      ),
-      TextField(
-        controller: proveedorProductController[index],
-        decoration: InputDecoration(
-          hintText: "Proveedor",
-          hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
-      ),
-      TextField(
-        controller: priceProductController[index],
-        keyboardType: TextInputType.numberWithOptions(
-          decimal: true,
-        ),
-        //inputFormatters: [_amountValidator],
-        decoration: InputDecoration(
-          hintText: "Costo del Producto",
-          hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
-        onChanged: (text) {
-          _costChange();
+        validator: (value) {
+          if (value.isEmpty) {
+            return 'Campo obligatorio';
+          } else {
+            return null;
+          }
         },
       ),
-      TextField(
-        controller: dimensionsProductController[index],
-        decoration: InputDecoration(
-          hintText: "Dimensiones",
-          hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
+      Row(
+        children: [
+          Expanded(
+            child: TextFormField(
+              controller: priceProductController[index],
+              keyboardType: TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              //inputFormatters: [_amountValidator],
+              decoration: InputDecoration(
+                hintText: "Costo del Paquete",
+                hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
+              onChanged: (text) {
+                _costChange();
+              },
+              validator: (value) {
+                if (value.isEmpty) {
+                  return 'Campo obligatorio';
+                } else {
+                  return null;
+                }
+              },
+            ),
+          ),
+          Flexible(
+            child: Padding(
+              padding: EdgeInsets.only(left: 10.0),
+              child: DropdownButtonFormField<String>(
+                key: _formkKeyCurrency[0],
+                value: selectedCurrency,
+                hint: Text(
+                  'USD',
+                ),
+                onChanged: (currency) =>
+                    setState(() => selectedCurrency = currency),
+                validator: (value) => value == null ? 'Campo Obligatorio' : null,
+                items:
+                    ['USD', 'MXN'].map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+              ),
+            )
+          )
+        ],
       ),
-      TextField(
+      FutureBuilder(
+        builder: (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot){
+          return renderAutocomplete();
+        }
+      ),
+      TextFormField(
         controller: refProductController[index],
         decoration: InputDecoration(
           hintText: "Referencia de Rastreo",
           hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
+        validator: (value) {
+          if (value.isEmpty) {
+            return 'Campo obligatorio';
+          } else {
+            return null;
+          }
+        },
       ),
     ];
   }
 
+  Widget renderAutocomplete(){
+    var tmp = proveedores.getList();
+    if(tmp.length == 0){
+      return TextFormField(
+        //controller: proveedorProductController[0],
+        decoration: InputDecoration(
+          hintText: "Descripción",
+          hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
+        validator: (value) {
+          if (value.isEmpty) {
+            return 'Campo obligatorio';
+          } else {
+            return null;
+          }
+        },
+        onChanged: (value){
+          selectedSupplier.setName(value);
+        },
+      );
+    }
+    return searchTextField = AutoCompleteTextField<Proveedor>(
+      key: autoCompleteKey,
+      suggestions: proveedores.getList(),
+      submitOnSuggestionTap: true,
+      clearOnSubmit: false,
+      style: TextStyle(color: Colors.black, fontSize: 12.0),
+      decoration: InputDecoration(
+        hintText: 'Proveedor',
+        hintStyle: TextStyle(color: Colors.grey),
+        //contentPadding: EdgeInsets.fromLTRB(10.0, 30.0, 10.0, 10.0)
+      ),
+      itemFilter: (item, query){
+        return item.name.toLowerCase().startsWith(query.toLowerCase());
+      },
+      itemSorter: (a, b){
+        return a.name.compareTo(b.name);
+      },
+      itemSubmitted: (item){
+        print(item.id);
+        print(item.name);
+        setState(() {
+          searchTextField.textField.controller.text = item.name;
+          selectedSupplier = item;
+        });
+      },
+      itemBuilder: (context, item) {
+        return Text(item.name);
+      },
+      
+    );
+  }
 }

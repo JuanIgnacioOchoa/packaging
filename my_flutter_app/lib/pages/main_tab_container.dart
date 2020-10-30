@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:my_flutter_app/constants.dart';
 import 'package:my_flutter_app/pages/home_page.dart';
+import 'package:my_flutter_app/pages/info/info_page.dart';
+import 'package:my_flutter_app/pages/notification/notification_page.dart';
 import 'package:my_flutter_app/states/user.dart';
 import 'package:provider/provider.dart';
 
@@ -16,30 +19,24 @@ class  TabViewContainer extends StatelessWidget{
           body: TabBarView(
             children: [
               HomePage(),
-              new Container(
-                child: Text('On Construction'),
-              ),
-              new Container(                
-                child: Text('On Construction'),
-              ),
-              new Container(
-                child: ConfigurationPage()
-              ),
+              NotificationPage(),
+              InfoPage(),
+              ConfigurationPage(),
             ],
           ),
-          backgroundColor: Colors.blue,
+          backgroundColor: DARK_GREEN,
           bottomNavigationBar: new TabBar(
             tabs: [
               Tab(
                 icon: new Icon(Icons.home),
               ),
               Tab(
-                icon: new Icon(Icons.rss_feed),
+                icon: new Icon(Icons.notifications_none),
               ),
               Tab(
-                icon: new Icon(Icons.perm_identity),
+                icon: new Icon(Icons.info_outline),
               ),
-              Tab(icon: new Icon(Icons.settings),)
+              Tab(icon: new Icon(Icons.more_horiz),)
             ],
             labelColor: Colors.black,
             unselectedLabelColor: Colors.white,

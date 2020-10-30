@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:my_flutter_app/api/users/index.dart';
 import 'package:my_flutter_app/common/alert_dialog.dart';
 import 'package:my_flutter_app/common/loading.dart';
+import 'package:my_flutter_app/constants.dart';
 import 'package:my_flutter_app/login/LoginForm.dart';
 import 'package:my_flutter_app/login/register/register_page.dart';
 import 'package:my_flutter_app/pages/main_tab_container.dart';
@@ -57,6 +58,8 @@ class _LoginPageState extends State<LoginPage> {
       */
       final user = Provider.of<User>(context, listen: false);
       user.setData(value['data']); 
+      _username = '';
+      _password = '';
       Navigator.push(
         context, 
         MaterialPageRoute(builder: (context) => TabViewContainer()),
@@ -176,13 +179,13 @@ Future<Map<String, dynamic>> onSubmit() async{
         padding: EdgeInsets.all(2.0),
         decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(width: 2.0, color: Colors.white)),
+            border: Border.all(width: 2.0, color: Colors.black)),
         child: isSelected
             ? Container(
                 width: double.infinity,
                 height: double.infinity,
                 decoration:
-                    BoxDecoration(shape: BoxShape.circle, color: Colors.white),
+                    BoxDecoration(shape: BoxShape.circle, color: Colors.black),
               )
             : Container(),
       );
@@ -201,7 +204,7 @@ Future<Map<String, dynamic>> onSubmit() async{
     ScreenUtil.init(context, width: 750, height: 1334, allowFontScaling: true);
     return new Scaffold(
       backgroundColor: Colors.white,
-      resizeToAvoidBottomPadding: true,
+      resizeToAvoidBottomPadding: false,
       body: _loading ? Loading() : 
       FutureBuilder(  
         builder: (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
@@ -215,9 +218,9 @@ Future<Map<String, dynamic>> onSubmit() async{
     return Column(
             children: <Widget>[
               Padding(
-                padding: EdgeInsets.only(top: 80.0),
+                padding: EdgeInsets.only(top: 150.0),
                 child: Image.asset(
-                  "assets/images/fondo.jpeg",
+                  "assets/images/topexpress_logo.png",
                 ),
               ),
             ],
@@ -244,21 +247,23 @@ Future<Map<String, dynamic>> onSubmit() async{
               padding: EdgeInsets.only(left: 28.0, right: 28.0, top: 0.0),
               child: Column(
                 children: <Widget>[
+                  
                   Row(
                     children: <Widget>[
                       Padding(
-                        padding: EdgeInsets.only(top: 40.0),
+                        padding: EdgeInsets.only(top: 150.0),
                         child: Image.asset(
-                        "assets/images/logo.png",
-                        width: ScreenUtil().setWidth(200),
-                        height: ScreenUtil().setHeight(200),
+                          "assets/images/topexpress_logo_title.png",
+                          width: ScreenUtil().setWidth(600),
                         ),
                       )
                     ],
                   ),
+                  
                   SizedBox(
-                    height: ScreenUtil().setHeight(50),
+                    height: ScreenUtil().setHeight(80),
                   ),
+                  
                   LoginForm(
                     callbackUsernameChange: (val) => { this.onChangeUsername(val)},
                     callbackPasswordChange: (val) => { this.onChangePassword(val)},
@@ -283,7 +288,7 @@ Future<Map<String, dynamic>> onSubmit() async{
                           ),
                           Text("Remember me",
                               style: TextStyle(
-                                  fontSize: 12, fontFamily: "Poppins-Medium", color: Colors.white))
+                                  fontSize: 12, fontFamily: "Poppins-Medium", color: Colors.black))
                         ],
                       )
                       ),
@@ -293,8 +298,8 @@ Future<Map<String, dynamic>> onSubmit() async{
                           height: ScreenUtil().setHeight(100),
                           decoration: BoxDecoration(
                               gradient: LinearGradient(colors: [
-                                Color(0xFF17ead9),
-                                Color(0xFF6078ea)
+                                LIGHT_GREEN,
+                                DARK_GREEN
                               ]),
                               borderRadius: BorderRadius.circular(6.0),
                               boxShadow: [

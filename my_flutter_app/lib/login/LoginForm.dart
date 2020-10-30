@@ -31,11 +31,6 @@ class LoginForm extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text("Login",
-                style: TextStyle(
-                    fontSize: ScreenUtil().setSp(45),
-                    fontFamily: "Poppins-Bold",
-                    letterSpacing: .6)),
             SizedBox(
               height: ScreenUtil().setHeight(30),
             ),

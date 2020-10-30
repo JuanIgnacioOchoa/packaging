@@ -151,6 +151,7 @@ class _RegisterPageState extends State<RegisterPage>{
     // TODO: implement build
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: DARK_GREEN,
         title: Text("Registrar"),
         leading: BackButton(
           color: Colors.white,  
@@ -182,17 +183,19 @@ class _RegisterPageState extends State<RegisterPage>{
                   child: Stack(
                     //fit: StackFit.expand,
                     children: [
+                      
                       Padding(
                         padding: EdgeInsets.only(right: 20),
                          child: Align(
-                          alignment: Alignment.topRight,
+                          alignment: Alignment.topLeft,
                           child:  Image.asset(
-                            "assets/images/logo.png",
+                            "assets/images/topexpress_logo.png",
                             width: ScreenUtil().setWidth(200),
                             height: ScreenUtil().setHeight(200),
                           ),
                         )
                       ),
+                      
                       Padding(
                         padding: EdgeInsets.only( top: 110, bottom: 140, left: 20, right: 20),
                         //child: Visibility(
@@ -223,8 +226,8 @@ class _RegisterPageState extends State<RegisterPage>{
                       height: ScreenUtil().setHeight(100),
                       decoration: BoxDecoration(
                           gradient: LinearGradient(colors: [
-                            Color(0xFF17ead9),
-                            Color(0xFF6078ea)
+                            LIGHT_GREEN,
+                            DARK_GREEN
                           ]),
                           borderRadius: BorderRadius.circular(6.0),
                           boxShadow: [
