@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:convert';
@@ -40,30 +42,24 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _loading = false;
       });
-      /*
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MultiProvider(
-            providers: [
-              ChangeNotifierProvider(create: (_) => User(value['data'])),
-            ],
-            child: MaterialApp(
-              home: TabViewContainer(),
-              debugShowCheckedModeBanner: false,
-            ),
-          ),
-        ),
-      );
-      */
-      final user = Provider.of<User>(context, listen: false);
-      user.setData(value['data']); 
-      _username = '';
-      _password = '';
-      Navigator.push(
-        context, 
-        MaterialPageRoute(builder: (context) => TabViewContainer()),
-      );
+      var userJson = value['data']['users'][0];
+      if(userJson["id_status"].toString() == PENDING_CONFIRMATION_ID.toString() ){
+        const title = Text("Usuario no confirmado");
+        const body = [
+          Text("Se envio un correo de confirmacion, favor de confirmar el usuario mediante el correo")
+        ];
+        CustomAlertDialog(context,title, body, 1);
+      } else {
+        final user = Provider.of<User>(context, listen: false);
+        user.setData(userJson); 
+        _username = '';
+        _password = '';
+        Navigator.push(
+          context, 
+          MaterialPageRoute(builder: (context) => TabViewContainer()),
+        );
+      }
+
     } else {
       const title = Text("Error de Ingreso");
       const body = [

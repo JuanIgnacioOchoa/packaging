@@ -50,7 +50,6 @@ class HttpPackagesService {
       req.headers.addAll(HEADER_JSON_MULTIFORM);
       var streamedResponse = await req.send();
       var response = Response.fromStream(streamedResponse);
-      print(response);
       print(streamedResponse);
       return response;
       

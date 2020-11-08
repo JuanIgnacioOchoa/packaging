@@ -1,29 +1,35 @@
 import 'package:flutter/material.dart';
 
 const inputsIdArray = ['username', 'password', 'password_2','name', 'lastname', 'mothermaidenname', 'email', 'phone'];
-const inputsLabelArray = ['Usuario', 'Contraseña', 'Confirmar Contraseña', 'Nombre', 'Apellido P.', 'Apellido M.', 'Correo', 'Teléfono'];
-var controllers = initailizeControllers();
+List<String> inputsLabelArray = ['Usuario', 'Contraseña', 'Confirmar Contraseña', 'Nombre', 'Apellido P.', 'Apellido M.', 'Correo', 'Teléfono'];
+List<TextEditingController> controllers = initailizeControllers();
 
 initailizeControllers() {
-  var result = [];
-    for(var i = 0; i < inputsIdArray.length; i++){
-      result.add(new TextEditingController());
-    }
-    return result;
+  List<TextEditingController> result = [
+    new TextEditingController(),
+    new TextEditingController(),
+    new TextEditingController(),
+    new TextEditingController(),
+    new TextEditingController(),
+    new TextEditingController(),
+    new TextEditingController(),
+    new TextEditingController(),
+  ];
+    
+  return result;
 }
 
-typedef void StringCallback(Map<String, String> val);
+typedef void StringCallback(List<String> id, List<TextEditingController> controllers);
 
 class RegisterForm extends StatelessWidget {
   final StringCallback callback;
   RegisterForm({this.callback});
   onChange(value){
-    //print('object:' + value);
     Map values = Map<String, String>();
     for(var i = 0; i < inputsIdArray.length; i++){
       values[inputsIdArray[i]] = controllers[i].text;
     }
-    callback(values);
+    callback(inputsIdArray, controllers);
   }
   @override
   Widget build(BuildContext context) {

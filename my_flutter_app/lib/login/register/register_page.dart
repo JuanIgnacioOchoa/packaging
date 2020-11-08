@@ -20,6 +20,7 @@ class RegisterPage extends StatefulWidget{
 
 class _RegisterPageState extends State<RegisterPage>{
   var _submitData;
+  var _controllers;
   var _loading = false;
   final _formKey = GlobalKey<FormState>();
   final HttpUserService _httpUserService = HttpUserService();
@@ -29,8 +30,13 @@ class _RegisterPageState extends State<RegisterPage>{
       super.initState();
       _loading = false;
   }
-  onTextChange(data){
-    _submitData = data;
+  onTextChange(inputsIdArray, controllers){
+    Map values = Map<String, String>();
+    for(var i = 0; i < inputsIdArray.length; i++){
+      values[inputsIdArray[i]] = controllers[i].text;
+    }
+    _controllers = controllers;
+    _submitData = values;
   }
 
   submitSuccess(value){
@@ -43,6 +49,9 @@ class _RegisterPageState extends State<RegisterPage>{
         const body = [
           Text("Ya puedes ingresar con tu usuario y contraseña.")
         ];
+        for(var i = 0; i < _controllers.length; i++){
+          _controllers[i].text = '';
+        } 
         CustomAlertDialog(context,title, body, 2);
       } else {
         const title = Text("Registro Fallido");
@@ -204,7 +213,7 @@ class _RegisterPageState extends State<RegisterPage>{
                             child: Form(
                               key: _formKey,
                               child: RegisterForm(
-                                callback: (val) => { this.onTextChange(val)},
+                                callback: (id, controller) => { this.onTextChange(id, controller)},
                               ),
                             )
                           ),

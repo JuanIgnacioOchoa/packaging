@@ -28,8 +28,7 @@ class User with ChangeNotifier{
     }
     notifyListeners();
   }
-  void setData(json){
-    var user = json['users'][0];
+  void setData(user){
     id = user['id'];
     username = user['username'];
     name = user['name'];

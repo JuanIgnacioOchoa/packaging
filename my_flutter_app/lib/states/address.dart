@@ -40,6 +40,24 @@ class Address {
     */
   }
 
+  Address.localAddress(int type){
+    switch(type){
+      case 1:
+      default:
+        id = 1;
+        addressLine1 = 'Recoger en Oficina';
+        intNumber = '';
+        extNumber = 'Torre ICON';
+        addressLine2 = '';
+        city = 'Guadalajara';
+        state = 'Jalisco';
+        country = 'Mexico';
+        additionalInfo = '';
+        idStatus = 0;
+        contactName = '';
+        contactNumber = '';
+    }
+  }
 
   void setData(json){
     print('setData: ');

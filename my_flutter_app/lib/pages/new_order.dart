@@ -10,6 +10,7 @@ import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:my_flutter_app/api/packages/index.dart';
 import 'package:my_flutter_app/api/proveedores/index.dart';
 import 'package:my_flutter_app/constants.dart';
+import 'package:my_flutter_app/states/address.dart';
 import 'package:my_flutter_app/states/proveedor.dart';
 import 'package:my_flutter_app/states/proveedores.dart';
 import 'package:my_flutter_app/states/user.dart';
@@ -26,6 +27,7 @@ class _NewOrderState extends State<NewOrder>{
 
   final _formKey = [ new GlobalKey<FormState>() ];
   final _formkKeyCurrency = [ new GlobalKey<FormState>() ];
+  final _formkKeyAddress = [ new GlobalKey<FormState>() ];
   GlobalKey<AutoCompleteTextFieldState<Proveedor>> autoCompleteKey = new GlobalKey();
   final HttpPackagesService _httpPackagesService = HttpPackagesService();
   final HttpSuppliersService _httpSuppliersService = HttpSuppliersService();
@@ -41,6 +43,7 @@ class _NewOrderState extends State<NewOrder>{
   final priceProductController = [ new TextEditingController() ];
   final dimensionsProductController = [ new TextEditingController() ];
   final refProductController = [ new TextEditingController() ];
+  final quantityProductController = [ new TextEditingController() ];
   var selectedSupplier = Proveedor({'id': 0, 'name': ''});
   final products = [ 0 ];
   int finalIndex = 0;
@@ -50,6 +53,7 @@ class _NewOrderState extends State<NewOrder>{
   double total = 0.0;
 
   String selectedCurrency = 'USD';
+  Address selectedAddress;
   
   @override
   void initState() {
@@ -75,6 +79,7 @@ class _NewOrderState extends State<NewOrder>{
       priceProductController.add(new TextEditingController());
       dimensionsProductController.add(new TextEditingController());
       refProductController.add(new TextEditingController());
+      quantityProductController.add(new TextEditingController());
       _formKey.add(new GlobalKey<FormState>());
     });
   }
@@ -87,7 +92,9 @@ class _NewOrderState extends State<NewOrder>{
         // If the form is valid, display a Snackbar.
       } else if(_formkKeyCurrency[i].currentState.validate()) {
 
-      }else {
+      } else if(_formkKeyAddress[i].currentState.validate()){
+
+      } else {
         success = false;
       }
     }
@@ -101,10 +108,10 @@ class _NewOrderState extends State<NewOrder>{
       var map = new Map<String, dynamic>();
       map['newPackage'] = 'true';
       map["idUser"] = user.id;
-      map["idAddress"] = null;
+      map["idAddress"] = selectedAddress.id;
       map['referenceNumber'] = refProductController[0].text;
-      map['descrption'] = nameProductController[0].text;
-      map['quantity'] = '4';
+      map['description'] = nameProductController[0].text;
+      map['quantity'] = quantityProductController[0].text;
       map['totalCost'] = total;
       map['shipCost'] = sendCost;
       map['packageCost'] = subTotal;
@@ -214,32 +221,6 @@ class _NewOrderState extends State<NewOrder>{
     } catch (e){
       print('Error::: $e');
     }
-    /*
-    setState(() {
-      _loading = true;
-    });
-    try{
-      var body = json.encode({ "idUser": 1});
-      var response = _httpPackagesService.getPackages(body);
-      response.then((value) => {
-        loadPackagesSuccess(value)    
-      });
-      response.catchError((onError) => {
-        loadPackageError(onError)
-      });
-      return response;
-    } on Exception catch (exception) {
-      setState(() {
-        _loading = false;
-      });
-      throw 'Exception';
-    } catch (error) {
-      setState(() {
-        _loading = false;
-      });
-      throw 'Error';
-    }
-    */
   }
   @override
   Widget build(BuildContext context){
@@ -261,7 +242,7 @@ class _NewOrderState extends State<NewOrder>{
                 key: _formKey[0],
                 child: SingleChildScrollView(
                   child: Column(
-                    children: getNewOrderWidgets(0)
+                    children: getNewOrderWidgets(0, user)
                   )
                 )
               )
@@ -381,7 +362,7 @@ class _NewOrderState extends State<NewOrder>{
     return SizedBox.shrink();
   }
 
-  Widget getExpandableWidget(int index){
+  Widget getExpandableWidget(int index, User user){
     return(
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -399,7 +380,7 @@ class _NewOrderState extends State<NewOrder>{
               children: [
                 Form(
                   key: _formKey[index],
-                  child: Column(children: getNewOrderWidgets(index),)
+                  child: Column(children: getNewOrderWidgets(index, user),)
                 )
               ],
             ),
@@ -409,44 +390,16 @@ class _NewOrderState extends State<NewOrder>{
     );
   }
 
-  List<Widget> getNewOrderWidgets(int index){
+  List<Widget> getNewOrderWidgets(int index, User user){
+    List<Address> address = [];//[Address.localAddress(0)];
+    address.add(Address.localAddress(1));
+    user.addresses.forEach((element) {address.add(element);});
     return [
-      TextFormField(
-        controller: nameProductController[index],
-        decoration: InputDecoration(
-          hintText: "Descripción",
-          hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
-        validator: (value) {
-          if (value.isEmpty) {
-            return 'Campo obligatorio';
-          } else {
-            return null;
-          }
-        },
-      ),
+      renderTextFormField(nameProductController[index], "Descripción"),
       Row(
         children: [
           Expanded(
-            child: TextFormField(
-              controller: priceProductController[index],
-              keyboardType: TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              //inputFormatters: [_amountValidator],
-              decoration: InputDecoration(
-                hintText: "Costo del Paquete",
-                hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
-              onChanged: (text) {
-                _costChange();
-              },
-              validator: (value) {
-                if (value.isEmpty) {
-                  return 'Campo obligatorio';
-                } else {
-                  return null;
-                }
-              },
-            ),
+            child: renderTextFormField(priceProductController[index], "Costo del Paquete"),
           ),
           Flexible(
             child: Padding(
@@ -477,10 +430,49 @@ class _NewOrderState extends State<NewOrder>{
           return renderAutocomplete();
         }
       ),
+      renderTextFormField(refProductController[index], "Referencia de Rastreo"),
+      renderTextFormField(quantityProductController[index], "Cantidad"),
+      DropdownButtonFormField<Address>(
+                key: _formkKeyAddress[0],
+                value: selectedAddress,
+                hint: Text(
+                  'Direccion',
+                ),
+                onChanged: (address) =>
+                    setState(() => selectedAddress = address),
+                validator: (value) => value == null ? 'Campo Obligatorio' : null,
+                items:
+                  address.map<DropdownMenuItem<Address>>((Address value) {
+                    return DropdownMenuItem<Address>(
+                      value: value,
+                      child: _renderAddress(value),
+                    );
+                  }).toList(),
+              ),
+    ];
+  }
+
+  Widget _renderAddress(item){
+    //return _renderValue('title', 'subtitle');
+    Address address = item;
+    return Text(
+                  '${address.addressLine1} ${address.extNumber} - ${address.city} - ${address.state}',
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 5,
+                  style: TextStyle(
+                    color: Colors.grey,
+                    //fontWeight: FontWeight.bold,
+                    fontSize: 14
+                  )
+                
+    );
+  }
+  Widget renderTextFormField(controller, hint){
+    return 
       TextFormField(
-        controller: refProductController[index],
+        controller: controller,
         decoration: InputDecoration(
-          hintText: "Referencia de Rastreo",
+          hintText: hint,
           hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
         validator: (value) {
           if (value.isEmpty) {
@@ -489,10 +481,8 @@ class _NewOrderState extends State<NewOrder>{
             return null;
           }
         },
-      ),
-    ];
+      );
   }
-
   Widget renderAutocomplete(){
     var tmp = proveedores.getList();
     if(tmp.length == 0){
