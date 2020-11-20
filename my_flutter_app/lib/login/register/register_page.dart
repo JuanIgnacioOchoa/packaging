@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
-import 'package:my_flutter_app/api/users/index.dart';
+import 'package:my_flutter_app/api/clients/index.dart';
 import 'package:my_flutter_app/common/alert_dialog.dart';
 import 'package:my_flutter_app/common/loading.dart';
 import 'package:my_flutter_app/constants.dart';
@@ -23,7 +23,7 @@ class _RegisterPageState extends State<RegisterPage>{
   var _controllers;
   var _loading = false;
   final _formKey = GlobalKey<FormState>();
-  final HttpUserService _httpUserService = HttpUserService();
+  final HttpClientService _httpClientService = HttpClientService();
 
   @override
   void initState() {
@@ -47,7 +47,7 @@ class _RegisterPageState extends State<RegisterPage>{
       if(code == 0){
         const title = Text("Registro Exitoso");
         const body = [
-          Text("Ya puedes ingresar con tu usuario y contraseña.")
+          Text("Se ha enviado un correo de activacion, porfavor revisa tu correo para activar tu cuenta")
         ];
         for(var i = 0; i < _controllers.length; i++){
           _controllers[i].text = '';
@@ -107,7 +107,7 @@ class _RegisterPageState extends State<RegisterPage>{
       throw '_submitDataNull';
     }
     try {
-      var userBody = json.encode({
+      var clientBody = json.encode({
         'username': _submitData['username'], 
         'password': _submitData['password'],
         'name': _submitData['name'],
@@ -119,10 +119,10 @@ class _RegisterPageState extends State<RegisterPage>{
       });
       print('_submitData1: 4');
       var body = jsonEncode({
-        'newUser': true,
-        'users': [jsonDecode(userBody)]
+        'newClient': true,
+        'clients': [jsonDecode(clientBody)]
       });
-      var a = _httpUserService.processUser( body );
+      var a = _httpClientService.processClient( body );
       a.whenComplete(() => {
         setState(() {
           _loading = false;

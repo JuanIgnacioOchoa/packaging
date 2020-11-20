@@ -9,11 +9,12 @@ import 'dart:io';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:my_flutter_app/api/packages/index.dart';
 import 'package:my_flutter_app/api/proveedores/index.dart';
+import 'package:my_flutter_app/common/alert_dialog.dart';
 import 'package:my_flutter_app/constants.dart';
 import 'package:my_flutter_app/states/address.dart';
 import 'package:my_flutter_app/states/proveedor.dart';
 import 'package:my_flutter_app/states/proveedores.dart';
-import 'package:my_flutter_app/states/user.dart';
+import 'package:my_flutter_app/states/client.dart';
 import 'package:provider/provider.dart';
 
   
@@ -47,7 +48,7 @@ class _NewOrderState extends State<NewOrder>{
   var selectedSupplier = Proveedor({'id': 0, 'name': ''});
   final products = [ 0 ];
   int finalIndex = 0;
-
+  Client client;
   double subTotal = 0.0;
   double sendCost = 0.0;
   double total = 0.0;
@@ -64,6 +65,115 @@ class _NewOrderState extends State<NewOrder>{
     print("Add receipt");
     //_getImage();
     _getImages();
+  }
+
+  loadPackagesSuccess(value){
+
+    var data = value['data']['packages'];
+    var active = data['active'];
+    var delivered = data['delivered'];
+    print(active);
+    client.setNewPackage(active, delivered);
+  }
+
+  loadPackageError(error){
+    print('error $error');
+    setState(() {
+      //_loading = false;
+    });
+  }
+
+  submitSuccessImage(value){
+    //_success = true;
+    try{
+      int code = value["statusOperation"]["code"];
+      
+      if(code == 0){
+        const title = Text("Registro exitoso");
+        var body = [
+          Text("Paquete Guardado con exito"),
+          //Text(value["statusOperation"]["description"].toString()),
+        ];
+        CustomAlertDialog(context,title, body, 2);
+      } else {
+        const title = Text("Registro Fallido");
+        var body = [
+          Text("Hubo un error al guardar los datos."),
+          Text(value["statusOperation"]["description"].toString()),
+        ];
+        CustomAlertDialog(context,title, body, 1);
+      }
+    } catch(e){
+      print("Error: $e");
+      const title = Text("Registro Fallido");
+      const body = [
+        Text("Error en la respuesta del servidor")
+      ];
+      CustomAlertDialog(context,title, body, 1);
+    }
+
+    //Navigator.of(context).pop();
+  }
+  submitSuccess(value){
+    //_success = true;
+    try{
+      int code = value["statusOperation"]["code"];
+      
+      if(code == 0){
+        var map = new Map<String, dynamic>();
+        var p = value["data"]["packages"][0];
+        print(p.toString());
+        map['id'] = p["id"];
+        map['idClient'] = p["id_client"];
+        for(var i = 0; i < images.length; i++){
+          var response = _httpPackagesService.postPackagesImage(map, images[i]);
+          response.then((value) {
+            if(i >= images.length){
+              submitSuccessImage(value);
+            }
+            
+          });
+          response.catchError((onError) {
+            print('error::: $onError');
+          });
+          response.whenComplete(() => {
+            print("Complete")
+          });
+        }
+        try{
+          var body = json.encode({ "idClient": client.id});
+          var response = _httpPackagesService.getPackages(body);
+          response.then((value) => {
+            loadPackagesSuccess(value)    
+          });
+          response.catchError((onError) => {
+            loadPackageError(onError)
+          });
+          return response;
+        } on Exception catch (exception) {
+          throw 'Exception';
+        } catch (error) {
+          throw 'Error';
+        }
+        
+      } else {
+        const title = Text("Registro Fallido");
+        var body = [
+          Text("Hubo un error al guardar los datos."),
+          Text(value["statusOperation"]["description"].toString()),
+        ];
+        CustomAlertDialog(context,title, body, 1);
+      }
+    } catch(e){
+      print("Error: $e");
+      const title = Text("Registro Fallido");
+      const body = [
+        Text("Error en la respuesta del servidor")
+      ];
+      CustomAlertDialog(context,title, body, 1);
+    }
+
+    //Navigator.of(context).pop();
   }
 
   _addNewElement(){
@@ -84,7 +194,8 @@ class _NewOrderState extends State<NewOrder>{
     });
   }
 
-  _confirmOrder(user){
+  _confirmOrder(){
+    print("_confirmOrder");
     var success = true;
     for(var i = 0; i < products.length; i++){
       //print('Name:' + nameProductController[i].text);
@@ -104,30 +215,37 @@ class _NewOrderState extends State<NewOrder>{
 
     //for(var i = 0; i < products.length; i++){
     //  print('Name:' + nameProductController[i].text);
-      
+      print("_confirmOrder 2");
       var map = new Map<String, dynamic>();
+      var packageMap = new Map<String, dynamic>();
       map['newPackage'] = 'true';
-      map["idUser"] = user.id;
-      map["idAddress"] = selectedAddress.id;
-      map['referenceNumber'] = refProductController[0].text;
-      map['description'] = nameProductController[0].text;
-      map['quantity'] = quantityProductController[0].text;
-      map['totalCost'] = total;
-      map['shipCost'] = sendCost;
-      map['packageCost'] = subTotal;
-      map['idStatus'] = TRANSCURSO_ID;
-      map['currency'] = selectedCurrency;
+      packageMap["idClient"] = client.id;
+      packageMap["idAddress"] = selectedAddress.id;
+      packageMap['referenceNumber'] = refProductController[0].text;
+      packageMap['description'] = nameProductController[0].text;
+      packageMap['quantity'] = quantityProductController[0].text;
+      packageMap['totalCost'] = total;
+      packageMap['shipCost'] = sendCost;
+      packageMap['packageCost'] = subTotal;
+      packageMap['idStatus'] = TRANSCURSO_ID;
+      packageMap['currency'] = selectedCurrency;
       print('------------');
-      print(searchTextField.textField.controller.text);
-      print(selectedSupplier.name);
-      if(searchTextField.textField.controller.text != '' && selectedSupplier.name != ''){
-        print("Abc:");
-        map['supplierName'] = selectedSupplier.name;
-        map["idSupplier"] = selectedSupplier.id;
+      if(searchTextField == null){
+        packageMap['supplierName'] = proveedorProductController[0].text;
+      } else {
+        if(searchTextField.textField.controller.text != '' && selectedSupplier.name != ''){
+          packageMap["idSupplier"] = selectedSupplier.id;
+        } else {
+          packageMap['supplierName'] = selectedSupplier.name;
+        }
       }
-      var response = _httpPackagesService.postPackages(map, images);
-      response.then((value) => {
-        print("then: ${value}")
+      map['packages'] = [packageMap];
+      print("_confirmOrder 3: "+ map.toString());
+
+      var response = _httpPackagesService.postPackages(json.encode(map));
+      response.then((value) {
+        print("thennn: ${value.toString()}");
+        submitSuccess(value);
       });
       response.catchError((onError) {
         print('error::: $onError');
@@ -156,6 +274,7 @@ class _NewOrderState extends State<NewOrder>{
   }
 
   _costChange(){
+    print("Cost change");
     double newValue = 0.0;
     for(var i = 0; i < priceProductController.length; i++){
       String newValueStr = priceProductController[i].text;
@@ -225,7 +344,7 @@ class _NewOrderState extends State<NewOrder>{
   @override
   Widget build(BuildContext context){
     proveedores = Provider.of<Proveedores>(context);
-    final user = Provider.of<User>(context, listen: false);
+    client = Provider.of<Client>(context, listen: false);
     return new Scaffold(
       appBar: AppBar(
         title: Text("Nueva Orden"),
@@ -242,31 +361,13 @@ class _NewOrderState extends State<NewOrder>{
                 key: _formKey[0],
                 child: SingleChildScrollView(
                   child: Column(
-                    children: getNewOrderWidgets(0, user)
-                  )
-                )
-              )
-              //child: Column(
-              //  children: getNewOrderWidgets(0)
-              //)
-              
-              /*ListView.builder(
-                itemCount: products.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return getExpandableWidget(index);
-                }
-              ),*/
-            ),
-            /*
-            Padding(
-              padding: EdgeInsets.only(top: 20.0, bottom: 10.0),
-              child: FloatingActionButton(
-                //onPressed: (){ _addNewElement(); },
-                child: Icon(Icons.add),
-              ),
-            ),
-            */
-            Container(
+                    children: [
+                      Column(
+                        children: getNewOrderWidgets(0),
+                      ),
+                      Column(
+                        children: [
+                          Container(
               height: 50.0,
               child: buildGridView(),
             ),
@@ -324,9 +425,36 @@ class _NewOrderState extends State<NewOrder>{
                     )
                   ),
                 ),
-                onPressed: () {_confirmOrder(user);}
+                onPressed: () {_confirmOrder();}
               ),
             )
+                        ],
+                      )
+                    ]
+                  )
+                )
+              )
+              //child: Column(
+              //  children: getNewOrderWidgets(0)
+              //)
+              
+              /*ListView.builder(
+                itemCount: products.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return getExpandableWidget(index);
+                }
+              ),*/
+            ),
+            /*
+            Padding(
+              padding: EdgeInsets.only(top: 20.0, bottom: 10.0),
+              child: FloatingActionButton(
+                //onPressed: (){ _addNewElement(); },
+                child: Icon(Icons.add),
+              ),
+            ),
+            */
+            
           ]
         ),
       ),
@@ -362,7 +490,7 @@ class _NewOrderState extends State<NewOrder>{
     return SizedBox.shrink();
   }
 
-  Widget getExpandableWidget(int index, User user){
+  Widget getExpandableWidget(int index){
     return(
       Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,7 +508,7 @@ class _NewOrderState extends State<NewOrder>{
               children: [
                 Form(
                   key: _formKey[index],
-                  child: Column(children: getNewOrderWidgets(index, user),)
+                  child: Column(children: getNewOrderWidgets(index),)
                 )
               ],
             ),
@@ -390,16 +518,34 @@ class _NewOrderState extends State<NewOrder>{
     );
   }
 
-  List<Widget> getNewOrderWidgets(int index, User user){
-    List<Address> address = [];//[Address.localAddress(0)];
-    address.add(Address.localAddress(1));
-    user.addresses.forEach((element) {address.add(element);});
+  List<Widget> getNewOrderWidgets(int index){
+    List<Address> addressList = [];//[Address.localAddress(0)];
+    //addressList.add(Address.localAddress(1));
+    client.addresses.forEach((element) {addressList.add(element);});
+    print('address[0].id)');
+    print(addressList.length);
     return [
       renderTextFormField(nameProductController[index], "Descripción"),
       Row(
         children: [
           Expanded(
-            child: renderTextFormField(priceProductController[index], "Costo del Paquete"),
+            child: TextFormField(
+              controller: priceProductController[index],
+              
+              decoration: InputDecoration(
+                hintText: "Costo del Paquete",
+                hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
+              validator: (value) {
+                if (value.isEmpty) {
+                  return 'Campo obligatorio';
+                } else {
+                  return null;
+                }
+              },
+              onChanged: (text) {
+                _costChange();
+              },
+            ),
           ),
           Flexible(
             child: Padding(
@@ -438,11 +584,15 @@ class _NewOrderState extends State<NewOrder>{
                 hint: Text(
                   'Direccion',
                 ),
-                onChanged: (address) =>
-                    setState(() => selectedAddress = address),
+                onChanged: (address){
+                  print("Addresssss");
+                  print(address);
+                  setState(() => selectedAddress = address);
+                }
+                    ,
                 validator: (value) => value == null ? 'Campo Obligatorio' : null,
                 items:
-                  address.map<DropdownMenuItem<Address>>((Address value) {
+                  addressList.map<DropdownMenuItem<Address>>((Address value) {
                     return DropdownMenuItem<Address>(
                       value: value,
                       child: _renderAddress(value),
@@ -456,7 +606,7 @@ class _NewOrderState extends State<NewOrder>{
     //return _renderValue('title', 'subtitle');
     Address address = item;
     return Text(
-                  '${address.addressLine1} ${address.extNumber} - ${address.city} - ${address.state}',
+                  '${address.addressLine1} ${address.extNumber} ',
                   overflow: TextOverflow.ellipsis,
                   maxLines: 5,
                   style: TextStyle(
@@ -487,9 +637,9 @@ class _NewOrderState extends State<NewOrder>{
     var tmp = proveedores.getList();
     if(tmp.length == 0){
       return TextFormField(
-        //controller: proveedorProductController[0],
+        controller: proveedorProductController[0],
         decoration: InputDecoration(
-          hintText: "Descripción",
+          hintText: "Proveedor",
           hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
         validator: (value) {
           if (value.isEmpty) {
@@ -503,7 +653,7 @@ class _NewOrderState extends State<NewOrder>{
         },
       );
     }
-    return searchTextField = AutoCompleteTextField<Proveedor>(
+    searchTextField = AutoCompleteTextField<Proveedor>(
       key: autoCompleteKey,
       suggestions: proveedores.getList(),
       submitOnSuggestionTap: true,
@@ -533,5 +683,7 @@ class _NewOrderState extends State<NewOrder>{
       },
       
     );
+    print("Search $searchTextField");
+    return searchTextField;
   }
 }

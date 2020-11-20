@@ -3,7 +3,7 @@ import 'package:my_flutter_app/constants.dart';
 import 'package:my_flutter_app/pages/home_page.dart';
 import 'package:my_flutter_app/pages/info/info_page.dart';
 import 'package:my_flutter_app/pages/notification/notification_page.dart';
-import 'package:my_flutter_app/states/user.dart';
+import 'package:my_flutter_app/states/client.dart';
 import 'package:provider/provider.dart';
 
 import 'config/configuration_page.dart';

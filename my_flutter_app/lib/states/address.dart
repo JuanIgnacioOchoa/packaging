@@ -27,17 +27,6 @@ class Address {
     idStatus = json['id_status'];
     contactName = json['contact_name'];
     contactNumber = json['contact_number'];
-    //var address = json['users'][0];
-    /*
-    id = user['id'];
-    username = user['username'];
-    name = user['name'];
-    lastname = user['lastname'];
-    email = user['email'];
-    motherMaidenName = user['mothermaidenname'];
-    phone = user['phone'];
-    idStatus = user['id_status'];
-    */
   }
 
   Address.localAddress(int type){

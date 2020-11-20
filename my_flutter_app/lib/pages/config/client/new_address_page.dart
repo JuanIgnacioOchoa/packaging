@@ -5,7 +5,7 @@ import 'package:my_flutter_app/api/address/index.dart';
 import 'package:my_flutter_app/common/alert_dialog.dart';
 import 'package:my_flutter_app/common/loading.dart';
 import 'package:my_flutter_app/constants.dart';
-import 'package:my_flutter_app/states/user.dart';
+import 'package:my_flutter_app/states/client.dart';
 import 'package:provider/provider.dart';
 
 class NewAddressPage extends StatefulWidget{
@@ -38,10 +38,10 @@ class _NewAddressPageState extends State<NewAddressPage>{
       _loading = false;
   }
   
-  submitSuccess(value, user){
+  submitSuccess(value, client){
     if(value['statusOperation'].toString() != null &&  value['statusOperation']['code'].toString() == '0'){
-      //print(user);
-      user.setNewAddress(value["data"]["address"]);
+      
+      client.setNewAddress(value["data"]["address"]);
       const title = Text("Registro Exitoso");
       const body = [
         Text("Ya puedes utilizar la dirección ingresada.")
@@ -76,7 +76,7 @@ class _NewAddressPageState extends State<NewAddressPage>{
     ];
     CustomAlertDialog(context,title, body, 1);
   }
-  Future<Map<String, dynamic>> _onSubmit(user) async{
+  Future<Map<String, dynamic>> _onSubmit(client) async{
     if (!_formKey.currentState.validate()) {
       print('invalid');
       return null;
@@ -95,7 +95,7 @@ class _NewAddressPageState extends State<NewAddressPage>{
         'state': controllerState.text,
         'country': 'Mexico',
         'additionalInfo': controllerRef.text,
-        'idUser': user.id,
+        'idClient': client.id,
         'idStatus': ACTIVO_ID,
         'contactNumber': controllerContactNumber.text,
         'contactName': controllerName.text
@@ -105,7 +105,7 @@ class _NewAddressPageState extends State<NewAddressPage>{
         'address': [jsonDecode(addressBody)]
       });
 
-      var response = _httpAddressService.processUser(body);
+      var response = _httpAddressService.processClient(body);
 
       response.whenComplete(() => {
         setState(() {
@@ -114,7 +114,7 @@ class _NewAddressPageState extends State<NewAddressPage>{
       });
       response.then((value) {
         print('Success: ' + value.toString());
-        submitSuccess(value, user);
+        submitSuccess(value, client);
       });
       response.catchError((onError) {
         print("Error: $onError");
@@ -142,7 +142,7 @@ class _NewAddressPageState extends State<NewAddressPage>{
   }
   @override
   Widget build(BuildContext context){
-    final user = Provider.of<User>(context);
+    final client = Provider.of<Client>(context);
     return new Scaffold(
       appBar: AppBar(
         title: Text("Nueva Direccion"),
@@ -156,14 +156,14 @@ class _NewAddressPageState extends State<NewAddressPage>{
           //List<Widget> children = [];
           //  child: Column(children: renderRegister(),)
           //);
-          return _renderForm(user);
+          return _renderForm(client);
 
         }
       )
     );
   }
 
-  Widget _renderForm(user){
+  Widget _renderForm(client){
     return Padding(
         padding: EdgeInsets.only(left: 5, right: 5),
         child: SingleChildScrollView(
@@ -187,7 +187,7 @@ class _NewAddressPageState extends State<NewAddressPage>{
                   color: Colors.transparent,
                   child: InkWell(
                     onTap: () {
-                      _onSubmit(user);
+                      _onSubmit(client);
                     },
                     child: RaisedButton(
                       child: Center(

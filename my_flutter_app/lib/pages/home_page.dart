@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:my_flutter_app/api/packages/index.dart';
 import 'package:my_flutter_app/common/loading.dart';
 import 'package:my_flutter_app/pages/main_tab_container.dart';
@@ -9,10 +8,7 @@ import 'package:my_flutter_app/pages/new_order.dart';
 import 'package:my_flutter_app/states/package.dart';
 import 'package:my_flutter_app/states/proveedores.dart';
 import 'package:provider/provider.dart';
-
-List<Package> activeList = [];
-
-List<Package> deliveredList = [];
+import 'package:my_flutter_app/states/client.dart';
 
 class HomePage extends StatefulWidget{
     @override
@@ -23,9 +19,14 @@ class _HomePageState extends State<HomePage>{
   final HttpPackagesService _httpPackagesService = HttpPackagesService();
   bool _loading;
   Future<Map <String, dynamic>> _myList;
+
+  Client client;
+
   @override
   void initState() {
       super.initState();
+    client = Provider.of<Client>(context, listen: false);
+    print("init: ${client.toString()}");
       _loading = false;
       _myList = loadPackages();
   }
@@ -81,15 +82,7 @@ class _HomePageState extends State<HomePage>{
     var active = data['active'];
     var delivered = data['delivered'];
     print(active);
-    activeList = [];
-    deliveredList = [];
-    for(var i = 0; i < active.length; i++){
-      activeList.add(Package(active[i]));
-    }
-    for(var i = 0; i < delivered.length; i++){
-      deliveredList.add(Package(delivered[i]));
-    }
-    print(activeList);
+    client.setNewPackage(active, delivered);
     setState(() {
       _loading = false;
     });
@@ -107,7 +100,9 @@ class _HomePageState extends State<HomePage>{
       _loading = true;
     });
     try{
-      var body = json.encode({ "idUser": 1});
+
+      print('getPackages : ${client}');
+      var body = json.encode({ "idClient": client.id});
       var response = _httpPackagesService.getPackages(body);
       response.then((value) => {
         loadPackagesSuccess(value)    
@@ -160,14 +155,14 @@ class _HomePageState extends State<HomePage>{
             Text("Productos Activos", style: TextStyle(fontSize: 20.0)),
             Expanded(
               child: Container(
-                child: _showProductsList(activeList),
+                child: _showProductsList(client.packagesActive),
               ),
             ),
             Divider(color: Colors.black),
             Text("Productos Entregados", style: TextStyle(fontSize: 20.0),),
             Expanded(
               child: Container(
-                child: _showProductsList(deliveredList),
+                child: _showProductsList(client.packagesDelivered),
               ),
             )
           ]

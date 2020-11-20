@@ -14,6 +14,7 @@ import 'package:http_parser/http_parser.dart';
 
 class HttpPackagesService {
   Future<Map<String, dynamic>> getPackages(body) async {
+    print('getPackages : $body}');
     Response res = await post(GET_PACKAGES_URL, body: body, headers: HEADER_JSON);
     try{
       Map<String, dynamic> body = jsonDecode(res.body);
@@ -24,12 +25,23 @@ class HttpPackagesService {
     }
   }
 
-  Future<Response> postPackages(body, image) async {
-    
+  Future<Map<String, dynamic>> postPackages(body) async {
+    Response res = await post(PROCESS_PACKAGES_URL, body: body, headers: HEADER_JSON);
     try{
-      var req = MultipartRequest("POST", Uri.parse(PROCESS_PACKAGES_URL));
-      if(image.length > 0){
-        Asset a = image[0];
+      Map<String, dynamic> body = jsonDecode(res.body);
+      return body;
+    } catch(e){
+      print("Error on loginClient " + e);
+      return e;
+    }
+  }
+
+
+  Future<Map<String, dynamic>> postPackagesImage(body, image) async {
+    print('postPackagesImage : $image ${image.length}');
+    try{
+      var req = MultipartRequest("POST", Uri.parse(PROCESS_PACKAGES_IMAGE_URL));
+        Asset a = image;
         var path = await FlutterAbsolutePath.getAbsolutePath(a.identifier);
         File file = File(path);
         var stream = new ByteStream(DelegatingStream.typed(file.openRead()));
@@ -42,16 +54,16 @@ class HttpPackagesService {
             contentType: new MediaType('image', 'jpeg')
           );
         req.files.add(multipartFile);
-      }
+      
+      
       body.forEach((k, v) {
         req.fields[k] = v.toString();
       });
-      
       req.headers.addAll(HEADER_JSON_MULTIFORM);
       var streamedResponse = await req.send();
-      var response = Response.fromStream(streamedResponse);
-      print(streamedResponse);
-      return response;
+      var response = await Response.fromStream(streamedResponse);
+      Map<String, dynamic> returnVal = jsonDecode(response.body);
+      return returnVal;
       
       //return null;
     } on FileSystemException catch (exception) {

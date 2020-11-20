@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:my_flutter_app/pages/config/user/profile_user_page.dart';
-import 'package:my_flutter_app/states/user.dart';
+import 'package:my_flutter_app/pages/config/client/profile_client_page.dart';
+import 'package:my_flutter_app/states/client.dart';
 import 'package:provider/provider.dart';
 final List<String> subTitles = ['Mi cuenta', 'Cerrar Sesión'];
 
@@ -10,11 +10,10 @@ class ConfigurationPage extends StatelessWidget{
   optionSelected(context, index){
     switch (index){
       case 0:
-        //final user = Provider.of<User>(context);
       
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => UserProfilePage()),
+          MaterialPageRoute(builder: (context) => ClientProfilePage()),
         );
         break;
       case 1: 
@@ -29,8 +28,8 @@ class ConfigurationPage extends StatelessWidget{
           ),
         );
       */
-        final user = Provider.of<User>(context, listen: false);
-        user.logoutUser(); 
+        final client = Provider.of<Client>(context, listen: false);
+        client.logoutClient(); 
         Navigator.pop(context);
         break;
       default:

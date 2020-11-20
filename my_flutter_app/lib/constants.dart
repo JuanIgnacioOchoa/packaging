@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 
-const URL = 'http://127.0.0.1:8762';
-//const URL = 'http://topexpressqa-env.eba-dcnvmavd.us-east-2.elasticbeanstalk.com';
+//const URL = 'http://127.0.0.1:8762';
+const URL = 'http://topexpressqa-env.eba-dcnvmavd.us-east-2.elasticbeanstalk.com';
 
 const LIGHT_GREEN = Color.fromRGBO(159, 185, 73, 1);
 const DARK_GREEN = Color.fromRGBO(110, 165, 74, 1);
@@ -24,12 +24,13 @@ final HEADER_JSON_MULTIFORM = {
 };
 
 
-const LOGIN_URL = URL + '/user/login';
-const PROCESS_USER_URL = URL + '/user/process';
-const PROCESS_ADDRESS_URL = URL + '/user/address/process';
+const LOGIN_URL = URL + '/client/login';
+const PROCESS_CLIENT_URL = URL + '/client/process';
+const PROCESS_ADDRESS_URL = URL + '/client/address/process';
 
-const GET_PACKAGES_URL = URL + '/user/package';
+const GET_PACKAGES_URL = URL + '/client/package';
 const PROCESS_PACKAGES_URL = URL + '/package/process';
+const PROCESS_PACKAGES_IMAGE_URL = URL + '/package/process/file';
 
 const GET_SUPPLIERS = URL + '/suppliers/all';
 

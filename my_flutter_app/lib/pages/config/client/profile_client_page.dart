@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:my_flutter_app/states/address.dart';
-import 'package:my_flutter_app/states/user.dart';
+import 'package:my_flutter_app/states/client.dart';
 import 'package:provider/provider.dart';
 import 'new_address_page.dart';
 
 final List<String> subTitles = ['Direcciones', 'Opcion 1', 'Opcion 2', 'Opcion 3', 'Opcion 4'];
 
-class UserProfilePage extends StatelessWidget{
+class ClientProfilePage extends StatelessWidget{
 
 
   @override
   Widget build(BuildContext context){
-    print("ABC:");
-    final user = Provider.of<User>(context);
-    print("ABC:");
-    print(user);
+    final client = Provider.of<Client>(context);
+    print(client);
     return new Scaffold(
       appBar: AppBar(
         title: Text("Perfil"),
@@ -31,12 +29,12 @@ class UserProfilePage extends StatelessWidget{
               child: Column(
                 children: [
                   _renderTitle("Datos del Usuario"),
-                  _renderValue("Nombre", user.fullname ?? "N/A"),
-                  _renderValue("Email", user.email ?? "N/A"),
-                  _renderValue("Phone", user.phone ?? "N/A"),
+                  _renderValue("Nombre", client.fullname ?? "N/A"),
+                  _renderValue("Email", client.email ?? "N/A"),
+                  _renderValue("Phone", client.phone ?? "N/A"),
 
                   _renderTitle("Direcciones"),
-                  for(var item in user.addresses) _renderAddress(item),
+                  for(var item in client.addresses) _renderAddress(item),
                   _renderAddAddressButton(context),
                 ],
               ),

@@ -4,7 +4,7 @@ import 'package:my_flutter_app/states/address.dart';
 class Package{ // with ChangeNotifier{
   int id;
   int idSupplier;
-  int idUser;
+  int idClient;
   int idAddres;
   String referenceNumber;
   String description;
@@ -24,7 +24,7 @@ class Package{ // with ChangeNotifier{
     
     id = json["id"];
     idSupplier = json["id_supplier"];
-    idUser = json["id_user"];
+    idClient = json["id_client"];
     idAddres = json['id_address'];
     referenceNumber = json['reference_number'];
     description = json['description'];

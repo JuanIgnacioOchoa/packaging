@@ -3,14 +3,14 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:convert';
-import 'package:my_flutter_app/api/users/index.dart';
+import 'package:my_flutter_app/api/clients/index.dart';
 import 'package:my_flutter_app/common/alert_dialog.dart';
 import 'package:my_flutter_app/common/loading.dart';
 import 'package:my_flutter_app/constants.dart';
 import 'package:my_flutter_app/login/LoginForm.dart';
 import 'package:my_flutter_app/login/register/register_page.dart';
 import 'package:my_flutter_app/pages/main_tab_container.dart';
-import 'package:my_flutter_app/states/user.dart';
+import 'package:my_flutter_app/states/client.dart';
 import 'package:provider/provider.dart';
 
 
@@ -20,7 +20,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final HttpUserService _httpUserService = HttpUserService();
+  final HttpClientService _httpClientService = HttpClientService();
   bool _isSelected = false;
   String _username = '';
   String _password = '';
@@ -42,16 +42,16 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _loading = false;
       });
-      var userJson = value['data']['users'][0];
-      if(userJson["id_status"].toString() == PENDING_CONFIRMATION_ID.toString() ){
+      var clientJson = value['data']['clients'][0];
+      if(clientJson["id_status"].toString() == PENDING_CONFIRMATION_ID.toString() ){
         const title = Text("Usuario no confirmado");
         const body = [
           Text("Se envio un correo de confirmacion, favor de confirmar el usuario mediante el correo")
         ];
         CustomAlertDialog(context,title, body, 1);
       } else {
-        final user = Provider.of<User>(context, listen: false);
-        user.setData(userJson); 
+        final client = Provider.of<Client>(context, listen: false);
+        client.setData(clientJson); 
         _username = '';
         _password = '';
         Navigator.push(
@@ -136,7 +136,7 @@ Future<Map<String, dynamic>> onSubmit() async{
     });
     try{
       var body = json.encode({"username": _username, 'password': _password});
-      var a = _httpUserService.loginUser( body );
+      var a = _httpClientService.loginClient( body );
       a.then(
         (value) => {
           login(value)
@@ -214,11 +214,19 @@ Future<Map<String, dynamic>> onSubmit() async{
     return Column(
             children: <Widget>[
               Padding(
-                padding: EdgeInsets.only(top: 150.0),
+                padding: EdgeInsets.only(top: 100.0),
+                child: Image.asset(
+                  "assets/images/topexpress_logo_title.png",
+                  width: ScreenUtil().setWidth(600),
+                ),
+              ),
+              Container(
+                //padding: EdgeInsets.only(top: 150.0),
                 child: Image.asset(
                   "assets/images/topexpress_logo.png",
                 ),
               ),
+              
             ],
           );
   }
@@ -243,45 +251,28 @@ Future<Map<String, dynamic>> onSubmit() async{
               padding: EdgeInsets.only(left: 28.0, right: 28.0, top: 0.0),
               child: Column(
                 children: <Widget>[
-                  
-                  Row(
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.only(top: 150.0),
-                        child: Image.asset(
-                          "assets/images/topexpress_logo_title.png",
-                          width: ScreenUtil().setWidth(600),
-                        ),
-                      )
-                    ],
+                  Padding(
+                    padding: EdgeInsets.only(top: 150),
+                    child: LoginForm(
+                      callbackUsernameChange: (val) => { this.onChangeUsername(val)},
+                      callbackPasswordChange: (val) => { this.onChangePassword(val)},
+                    ),
                   ),
-                  
-                  SizedBox(
-                    height: ScreenUtil().setHeight(80),
-                  ),
-                  
-                  LoginForm(
-                    callbackUsernameChange: (val) => { this.onChangeUsername(val)},
-                    callbackPasswordChange: (val) => { this.onChangePassword(val)},
-                  ),
-                  SizedBox(height: ScreenUtil().setHeight(40)),
-                  Row(
+                  Padding(
+                    padding: EdgeInsets.only(top: 50),
+                    child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Container(
                         decoration: BoxDecoration(color: Colors.transparent),
                         child: Row(
                         children: <Widget>[
-                          SizedBox(
-                            width: 12.0,
-                          ),
+                          SizedBox(width: 12.0,),
                           GestureDetector(
                             onTap: _radio,
                             child: radioButton(_isSelected),
                           ),
-                          SizedBox(
-                            width: 8.0,
-                          ),
+                          SizedBox(width: 8.0,),
                           Text("Remember me",
                               style: TextStyle(
                                   fontSize: 12, fontFamily: "Poppins-Medium", color: Colors.black))
@@ -326,39 +317,9 @@ Future<Map<String, dynamic>> onSubmit() async{
                       )
                     ],
                   ),
-                  SizedBox(
-                    height: ScreenUtil().setHeight(40),
                   ),
-                  /*
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      horizontalLine(),
-                      Text("Social Login",
-                          style: TextStyle(
-                              fontSize: 16.0, fontFamily: "Poppins-Medium")),
-                      horizontalLine()
-                    ],
-                  ),
-                  SizedBox(
-                    height: ScreenUtil().setHeight(40),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      SocialIcon(
-                        colors: [
-                          Color(0xFFff4f38),
-                          Color(0xFFff355d),
-                        ],
-                        iconData: CustomIcons.googlePlus,
-                        onPressed: () {},
-                      ),
-                    ],
-                  ),*/
-                  SizedBox(
-                    height: ScreenUtil().setHeight(30),
-                  ),
+                  SizedBox(height: ScreenUtil().setHeight(40),),
+                  SizedBox(height: ScreenUtil().setHeight(30),),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:my_flutter_app/states/address.dart';
+import 'package:my_flutter_app/states/package.dart';
 
-class User with ChangeNotifier{
+class Client with ChangeNotifier{
   int id;
   String username;
   String name;
@@ -12,8 +13,9 @@ class User with ChangeNotifier{
   int idStatus;
   List<Address> addresses = [];
   String fullname;
-
-  User();
+  List<Package> packagesActive = [];
+  List<Package> packagesDelivered = [];
+  Client();
 
   String toString(){
     return "{id: $id, username: $username, name: $name, lastname: $lastname, email: $email, motherMaidenName: $motherMaidenName, phone: $phone, idStatus: $idStatus, fullName: $fullname}";
@@ -28,24 +30,38 @@ class User with ChangeNotifier{
     }
     notifyListeners();
   }
-  void setData(user){
-    id = user['id'];
-    username = user['username'];
-    name = user['name'];
-    lastname = user['lastname'];
-    email = user['email'];
-    motherMaidenName = user['mothermaidenname'];
-    phone = user['phone'];
-    idStatus = user['id_status'];
+  void setData(client){
+    id = client['id'];
+    username = client['username'];
+    name = client['name'];
+    lastname = client['lastname'];
+    email = client['email'];
+    motherMaidenName = client['mothermaidenname'];
+    phone = client['phone'];
+    idStatus = client['id_status'];
     fullname = "$name $lastname $motherMaidenName";
-    List<dynamic> addressesTmp = user['address'];
+    List<dynamic> addressesTmp = client['address'];
     for(var i = 0; i < addressesTmp.length; i++){
       Address tmp = Address(addressesTmp[i]);
       addresses.add(tmp);
     }
   }
 
-  void logoutUser(){
+  void setNewPackage(activeJson, deliveredJson){
+    List<dynamic> packageTmpActive = activeJson;
+    List<dynamic> packageTmpDelivered = deliveredJson;
+    for(var i = 0; i < packageTmpActive.length; i++){
+      Package tmp = Package(packageTmpActive[i]);
+      packagesActive.add(tmp);
+    }
+    for(var i = 0; i < packageTmpDelivered.length; i++){
+      Package tmp = Package(packageTmpDelivered[i]);
+      packagesDelivered.add(tmp);
+    }
+    notifyListeners();
+  }
+
+  void logoutClient(){
     id = null;
     username = null;
     name = null;
