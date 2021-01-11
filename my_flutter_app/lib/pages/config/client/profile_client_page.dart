@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:my_flutter_app/states/address.dart';
-import 'package:my_flutter_app/states/client.dart';
+import 'package:top_express/states/address.dart';
+import 'package:top_express/states/client.dart';
 import 'package:provider/provider.dart';
 import 'new_address_page.dart';
 
@@ -34,7 +34,7 @@ class ClientProfilePage extends StatelessWidget{
                   _renderValue("Phone", client.phone ?? "N/A"),
 
                   _renderTitle("Direcciones"),
-                  for(var item in client.addresses) _renderAddress(item),
+                  for(var item in client.addressesClient) _renderAddress(item),
                   _renderAddAddressButton(context),
                 ],
               ),

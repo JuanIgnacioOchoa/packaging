@@ -1,13 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
-import 'package:my_flutter_app/api/clients/index.dart';
-import 'package:my_flutter_app/common/alert_dialog.dart';
-import 'package:my_flutter_app/common/loading.dart';
-import 'package:my_flutter_app/constants.dart';
-import 'package:my_flutter_app/login/register/register_form.dart';
+import 'package:top_express/api/clients/index.dart';
+import 'package:top_express/common/alert_dialog.dart';
+import 'package:top_express/common/loading.dart';
+import 'package:top_express/constants.dart';
+import 'package:top_express/login/register/register_form.dart';
 import 'dart:convert';
 
 class RegisterPage extends StatefulWidget{

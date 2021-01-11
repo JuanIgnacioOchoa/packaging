@@ -1,24 +1,68 @@
 
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
 import 'dart:io';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
-import 'package:my_flutter_app/api/packages/index.dart';
-import 'package:my_flutter_app/api/proveedores/index.dart';
-import 'package:my_flutter_app/common/alert_dialog.dart';
-import 'package:my_flutter_app/constants.dart';
-import 'package:my_flutter_app/states/address.dart';
-import 'package:my_flutter_app/states/proveedor.dart';
-import 'package:my_flutter_app/states/proveedores.dart';
-import 'package:my_flutter_app/states/client.dart';
+import 'package:top_express/api/packages/index.dart';
+import 'package:top_express/api/proveedores/index.dart';
+import 'package:top_express/common/alert_dialog.dart';
+import 'package:top_express/constants.dart';
+import 'package:top_express/states/address.dart';
+import 'package:top_express/states/proveedor.dart';
+import 'package:top_express/states/proveedores.dart';
+import 'package:top_express/states/client.dart';
 import 'package:provider/provider.dart';
 
   
 
+List<String> inputsLabelArray = ['Descripción', 'Costo del Paquete', 'Moneda', 'Proveedor', 'Referencia de Rastreo', 'Cantidad', 'Direccion'];
+
+String _validator(value, i){
+  switch(i){
+    case 0: //Descripcion
+      if (value.isEmpty) {
+        return 'Campo obligatorio';
+      } 
+      break;
+    case 1: //Costo del Paquete
+      if (value.isEmpty) {
+        return 'Campo obligatorio';
+      } else if(double.tryParse(value) == null){
+        return 'El campo debe ser numero';
+      }
+      break;
+    case 2: //Moneda
+      if(value == null){
+        return 'Campo obligatorio';
+      }
+      break;
+    case 3: //Proveedor
+      if(value == null){
+        return 'Campo obligatorio';
+      }
+      break;
+    case 4: //Referencia
+      break;
+    case 5: //Cantidad
+      if (value.isEmpty) {
+        return 'Campo obligatorio';
+      } else if( value == int){
+        return 'El campo debe ser numero a';
+      }
+      break;
+    case 6: //Direccion
+      if(value == null){
+        return 'Campo obligatorio';
+      }
+      break;
+    default:
+      return null;
+  }
+  return null;
+}
 class NewOrder extends StatefulWidget{
   @override
   _NewOrderState createState() => new _NewOrderState();
@@ -68,12 +112,19 @@ class _NewOrderState extends State<NewOrder>{
   }
 
   loadPackagesSuccess(value){
-
+    print("3--------------3");
     var data = value['data']['packages'];
     var active = data['active'];
     var delivered = data['delivered'];
     print(active);
     client.setNewPackage(active, delivered);
+
+          const title = Text("Registro exitoso");
+          var body = [
+            Text("Paquete Guardado con exito"),
+            //Text(value["statusOperation"]["description"].toString()),
+          ];
+          CustomAlertDialog(context,title, body, 2);
   }
 
   loadPackageError(error){
@@ -89,12 +140,6 @@ class _NewOrderState extends State<NewOrder>{
       int code = value["statusOperation"]["code"];
       
       if(code == 0){
-        const title = Text("Registro exitoso");
-        var body = [
-          Text("Paquete Guardado con exito"),
-          //Text(value["statusOperation"]["description"].toString()),
-        ];
-        CustomAlertDialog(context,title, body, 2);
       } else {
         const title = Text("Registro Fallido");
         var body = [
@@ -114,7 +159,8 @@ class _NewOrderState extends State<NewOrder>{
 
     //Navigator.of(context).pop();
   }
-  submitSuccess(value){
+  submitSuccess(value) async {
+    print("Submit Success ----- " + value.toString());
     //_success = true;
     try{
       int code = value["statusOperation"]["code"];
@@ -125,34 +171,23 @@ class _NewOrderState extends State<NewOrder>{
         print(p.toString());
         map['id'] = p["id"];
         map['idClient'] = p["id_client"];
+        map['idAddress'] = p["id_address"];
+        /*
         for(var i = 0; i < images.length; i++){
-          var response = _httpPackagesService.postPackagesImage(map, images[i]);
-          response.then((value) {
-            if(i >= images.length){
-              submitSuccessImage(value);
-            }
-            
-          });
-          response.catchError((onError) {
-            print('error::: $onError');
-          });
-          response.whenComplete(() => {
-            print("Complete")
-          });
+          var response = await _httpPackagesService.postPackagesImage(map, images[i]);
+          submitSuccessImage(response);
         }
+        */
         try{
+          print("1 hola -------");
           var body = json.encode({ "idClient": client.id});
-          var response = _httpPackagesService.getPackages(body);
-          response.then((value) => {
-            loadPackagesSuccess(value)    
-          });
-          response.catchError((onError) => {
-            loadPackageError(onError)
-          });
-          return response;
+          var response = await _httpPackagesService.getPackages(body);
+          loadPackagesSuccess(response);
         } on Exception catch (exception) {
+          loadPackageError(exception);
           throw 'Exception';
         } catch (error) {
+          loadPackageError(error);
           throw 'Error';
         }
         
@@ -194,7 +229,7 @@ class _NewOrderState extends State<NewOrder>{
     });
   }
 
-  _confirmOrder(){
+  _confirmOrder() async{
     print("_confirmOrder");
     var success = true;
     for(var i = 0; i < products.length; i++){
@@ -216,9 +251,9 @@ class _NewOrderState extends State<NewOrder>{
     //for(var i = 0; i < products.length; i++){
     //  print('Name:' + nameProductController[i].text);
       print("_confirmOrder 2");
-      var map = new Map<String, dynamic>();
+      //var map = new Map<String, dynamic>();
       var packageMap = new Map<String, dynamic>();
-      map['newPackage'] = 'true';
+      //map['newPackage'] = 'true';
       packageMap["idClient"] = client.id;
       packageMap["idAddress"] = selectedAddress.id;
       packageMap['referenceNumber'] = refProductController[0].text;
@@ -239,10 +274,13 @@ class _NewOrderState extends State<NewOrder>{
           packageMap['supplierName'] = selectedSupplier.name;
         }
       }
-      map['packages'] = [packageMap];
-      print("_confirmOrder 3: "+ map.toString());
+      //map['packages'] = [packageMap];
+      //print("_confirmOrder 3: "+ map.toString());
 
-      var response = _httpPackagesService.postPackages(json.encode(map));
+      var response = await _httpPackagesService.postPackages(packageMap, images);
+      //print("Response:$response ");
+      submitSuccess(response);
+      /*
       response.then((value) {
         print("thennn: ${value.toString()}");
         submitSuccess(value);
@@ -253,7 +291,7 @@ class _NewOrderState extends State<NewOrder>{
       response.whenComplete(() => {
         print("Complete")
       });
-      
+      */
     //}
 
   }
@@ -284,8 +322,8 @@ class _NewOrderState extends State<NewOrder>{
     }
     setState(() {
       subTotal = newValue;
-      sendCost = newValue * .1;
-      total = newValue * 1.1;
+      sendCost = newValue * .2;
+      total = newValue * 1.2;
     });
   }
 
@@ -296,7 +334,6 @@ class _NewOrderState extends State<NewOrder>{
 
     setState(() {
       _image = imgFile;
-      print('_image: $_image');
     });
   }
 
@@ -521,26 +558,21 @@ class _NewOrderState extends State<NewOrder>{
   List<Widget> getNewOrderWidgets(int index){
     List<Address> addressList = [];//[Address.localAddress(0)];
     //addressList.add(Address.localAddress(1));
-    client.addresses.forEach((element) {addressList.add(element);});
-    print('address[0].id)');
-    print(addressList.length);
+    client.addressesClient.forEach((element) {addressList.add(element);});
+    client.addressesGlobal.forEach((element) {addressList.add(element);});
     return [
-      renderTextFormField(nameProductController[index], "Descripción"),
+      renderTextFormField(nameProductController[index], 0), //Desc
       Row(
         children: [
           Expanded(
             child: TextFormField(
               controller: priceProductController[index],
-              
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
-                hintText: "Costo del Paquete",
+                hintText: inputsLabelArray[1],
                 hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
               validator: (value) {
-                if (value.isEmpty) {
-                  return 'Campo obligatorio';
-                } else {
-                  return null;
-                }
+                return _validator(value, 1); //costo
               },
               onChanged: (text) {
                 _costChange();
@@ -558,7 +590,9 @@ class _NewOrderState extends State<NewOrder>{
                 ),
                 onChanged: (currency) =>
                     setState(() => selectedCurrency = currency),
-                validator: (value) => value == null ? 'Campo Obligatorio' : null,
+                validator: (value) {
+                  return _validator(value, 2); //Moneda
+                },
                 items:
                     ['USD', 'MXN'].map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
@@ -576,21 +610,31 @@ class _NewOrderState extends State<NewOrder>{
           return renderAutocomplete();
         }
       ),
-      renderTextFormField(refProductController[index], "Referencia de Rastreo"),
-      renderTextFormField(quantityProductController[index], "Cantidad"),
+      renderTextFormField(refProductController[index], 4), //Referencia
+      TextFormField(
+              controller: quantityProductController[index],
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: InputDecoration(
+                hintText: inputsLabelArray[5],
+                hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
+              validator: (value) {
+                return _validator(value, 5); //Cantidad
+              },
+            ),
       DropdownButtonFormField<Address>(
                 key: _formkKeyAddress[0],
                 value: selectedAddress,
                 hint: Text(
-                  'Direccion',
+                  inputsLabelArray[6],
                 ),
                 onChanged: (address){
-                  print("Addresssss");
                   print(address);
                   setState(() => selectedAddress = address);
                 }
                     ,
-                validator: (value) => value == null ? 'Campo Obligatorio' : null,
+                validator: (value) {
+                  return _validator(value, 6);
+                },
                 items:
                   addressList.map<DropdownMenuItem<Address>>((Address value) {
                     return DropdownMenuItem<Address>(
@@ -617,19 +661,15 @@ class _NewOrderState extends State<NewOrder>{
                 
     );
   }
-  Widget renderTextFormField(controller, hint){
+  Widget renderTextFormField(controller, i){
     return 
       TextFormField(
         controller: controller,
         decoration: InputDecoration(
-          hintText: hint,
+          hintText: inputsLabelArray[i],
           hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
         validator: (value) {
-          if (value.isEmpty) {
-            return 'Campo obligatorio';
-          } else {
-            return null;
-          }
+          return _validator(value, i);
         },
       );
   }
@@ -639,14 +679,10 @@ class _NewOrderState extends State<NewOrder>{
       return TextFormField(
         controller: proveedorProductController[0],
         decoration: InputDecoration(
-          hintText: "Proveedor",
+          hintText: inputsLabelArray[3],
           hintStyle: TextStyle(color: Colors.grey, fontSize: 12.0)),
         validator: (value) {
-          if (value.isEmpty) {
-            return 'Campo obligatorio';
-          } else {
-            return null;
-          }
+          return _validator(value, 3);
         },
         onChanged: (value){
           selectedSupplier.setName(value);
@@ -660,7 +696,7 @@ class _NewOrderState extends State<NewOrder>{
       clearOnSubmit: false,
       style: TextStyle(color: Colors.black, fontSize: 12.0),
       decoration: InputDecoration(
-        hintText: 'Proveedor',
+        hintText: inputsLabelArray[3],
         hintStyle: TextStyle(color: Colors.grey),
         //contentPadding: EdgeInsets.fromLTRB(10.0, 30.0, 10.0, 10.0)
       ),

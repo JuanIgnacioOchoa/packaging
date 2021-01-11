@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:my_flutter_app/constants.dart';
-import 'package:my_flutter_app/pages/home_page.dart';
-import 'package:my_flutter_app/pages/info/info_page.dart';
-import 'package:my_flutter_app/pages/notification/notification_page.dart';
-import 'package:my_flutter_app/states/client.dart';
-import 'package:provider/provider.dart';
+import 'package:top_express/constants.dart';
+import 'package:top_express/pages/home_page.dart';
+import 'package:top_express/pages/info/info_page.dart';
+import 'package:top_express/pages/notification/notification_page.dart';
 
 import 'config/configuration_page.dart';
 
@@ -14,12 +12,13 @@ class  TabViewContainer extends StatelessWidget{
     //print(user);
     return new Scaffold(
       body: DefaultTabController(
-        length: 4,
+        //length: 4,
+        length: 3,
         child: new Scaffold(
           body: TabBarView(
             children: [
               HomePage(),
-              NotificationPage(),
+              //NotificationPage(),
               InfoPage(),
               ConfigurationPage(),
             ],
@@ -29,10 +28,10 @@ class  TabViewContainer extends StatelessWidget{
             tabs: [
               Tab(
                 icon: new Icon(Icons.home),
-              ),
+              ),/*
               Tab(
                 icon: new Icon(Icons.notifications_none),
-              ),
+              ),*/
               Tab(
                 icon: new Icon(Icons.info_outline),
               ),

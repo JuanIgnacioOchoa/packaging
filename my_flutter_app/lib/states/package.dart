@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:my_flutter_app/states/address.dart';
 
 class Package{ // with ChangeNotifier{
   int id;

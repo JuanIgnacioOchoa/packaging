@@ -1,14 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:my_flutter_app/api/packages/index.dart';
-import 'package:my_flutter_app/common/loading.dart';
-import 'package:my_flutter_app/pages/main_tab_container.dart';
-import 'package:my_flutter_app/pages/new_order.dart';
-import 'package:my_flutter_app/states/package.dart';
-import 'package:my_flutter_app/states/proveedores.dart';
+import 'package:top_express/api/packages/index.dart';
+import 'package:top_express/common/alert_dialog.dart';
+import 'package:top_express/common/loading.dart';
+import 'package:top_express/pages/new_order.dart';
+import 'package:top_express/states/proveedores.dart';
 import 'package:provider/provider.dart';
-import 'package:my_flutter_app/states/client.dart';
+import 'package:top_express/states/client.dart';
 
 class HomePage extends StatefulWidget{
     @override
@@ -17,7 +16,7 @@ class HomePage extends StatefulWidget{
 
 class _HomePageState extends State<HomePage>{
   final HttpPackagesService _httpPackagesService = HttpPackagesService();
-  bool _loading;
+  bool _loadingCalled;
   Future<Map <String, dynamic>> _myList;
 
   Client client;
@@ -25,10 +24,7 @@ class _HomePageState extends State<HomePage>{
   @override
   void initState() {
       super.initState();
-    client = Provider.of<Client>(context, listen: false);
-    print("init: ${client.toString()}");
-      _loading = false;
-      _myList = loadPackages();
+      _loadingCalled = false;
   }
 
   floatingActionAdd(BuildContext context){
@@ -83,21 +79,21 @@ class _HomePageState extends State<HomePage>{
     var delivered = data['delivered'];
     print(active);
     client.setNewPackage(active, delivered);
-    setState(() {
-      _loading = false;
-    });
   }
 
   loadPackageError(error){
     print('error $error');
-    setState(() {
-      _loading = false;
-    });
+    const title = Text("Error");
+    var body = [
+      Text("Hubo un error al cargar los datos."),
+      Text(error.toString()),
+    ];
+    CustomAlertDialog(context,title, body, 1);
   }
 
   Future<Map <String, dynamic>> loadPackages() async {
     setState(() {
-      _loading = true;
+      _loadingCalled = true;
     });
     try{
 
@@ -112,26 +108,51 @@ class _HomePageState extends State<HomePage>{
       });
       return response;
     } on Exception catch (exception) {
-      setState(() {
-        _loading = false;
-      });
+      loadPackageError(exception);
       throw 'Exception';
     } catch (error) {
-      setState(() {
-        _loading = false;
-      });
+      loadPackageError(error);
       throw 'Error';
     }
   }
 
   @override
   Widget build(BuildContext context){
+    client = Provider.of<Client>(context);
+    print("Client: ${client.packagesActive}");
+    print("Client: ${client.packagesDelivered}");
+    print("Client: ${client}");
     //loadPackages();
+    if(client.packagesActive == null || client.packagesDelivered == null){
+      if(!_loadingCalled){
+        loadPackages();
+      }
+      return new Scaffold(
+        body: Loading(),
+        floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.add),
+          onPressed: (){
+            floatingActionAdd(context);
+          },
+        )
+      );
+    } else {
+      return new Scaffold(
+        body: _render(),
+        floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.add),
+          onPressed: (){
+            floatingActionAdd(context);
+          },
+        )
+      );
+    }
     return new Scaffold(
       body: FutureBuilder(
         future: _myList,
         builder: (BuildContext context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
-          if(!snapshot.hasData){
+          if(client.packagesActive == null || client.packagesDelivered == null){
+            //loadPackages();
             return Loading();
           } 
           return _render();

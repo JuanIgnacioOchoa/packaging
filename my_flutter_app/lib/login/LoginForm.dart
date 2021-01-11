@@ -56,6 +56,7 @@ class LoginForm extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
+                /*
                 Text(
                   "Forgot Password?",
                   style: TextStyle(
@@ -63,6 +64,7 @@ class LoginForm extends StatelessWidget {
                       fontFamily: "Poppins-Medium",
                       fontSize: ScreenUtil().setSp(28)),
                 )
+                */
               ],
             )
           ],

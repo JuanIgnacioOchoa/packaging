@@ -43,3 +43,8 @@ final PENDING_CONFIRMATION_ID = 117941731;
 
 final TRANSCURSO_ID = 322132265;
 final ENTREGADO_ID = 513742944;
+
+/*
+  keystore: Topexpress2020
+  Key: Iguanas9462
+*/

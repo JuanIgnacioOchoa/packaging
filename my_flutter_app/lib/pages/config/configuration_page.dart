@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:my_flutter_app/pages/config/client/profile_client_page.dart';
-import 'package:my_flutter_app/states/client.dart';
+import 'package:top_express/pages/config/client/profile_client_page.dart';
+import 'package:top_express/states/client.dart';
 import 'package:provider/provider.dart';
+import 'package:top_express/utils/database.dart';
 final List<String> subTitles = ['Mi cuenta', 'Cerrar Sesión'];
 
 class ConfigurationPage extends StatelessWidget{
@@ -30,6 +31,7 @@ class ConfigurationPage extends StatelessWidget{
       */
         final client = Provider.of<Client>(context, listen: false);
         client.logoutClient(); 
+        DBProvider.db.deleteClient();
         Navigator.pop(context);
         break;
       default:

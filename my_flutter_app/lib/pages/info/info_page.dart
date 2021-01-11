@@ -16,8 +16,13 @@ class InfoPage extends StatelessWidget{
               Image.asset(
                 "assets/images/topexpress_logo_title.png",
               ),
-              Image.asset(
-                "assets/images/topexpress_logo.png",
+              ConstrainedBox(
+                constraints: new BoxConstraints(
+                  maxHeight: 300.0,
+                ),
+                child: Image.asset(
+                  "assets/images/topexpress_logo.png",
+                ),
               ),
               Padding(
                 padding: EdgeInsets.only(right: 20, left:20),

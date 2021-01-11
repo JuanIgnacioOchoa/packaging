@@ -1,18 +1,16 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:convert';
-import 'package:my_flutter_app/api/clients/index.dart';
-import 'package:my_flutter_app/common/alert_dialog.dart';
-import 'package:my_flutter_app/common/loading.dart';
-import 'package:my_flutter_app/constants.dart';
-import 'package:my_flutter_app/login/LoginForm.dart';
-import 'package:my_flutter_app/login/register/register_page.dart';
-import 'package:my_flutter_app/pages/main_tab_container.dart';
-import 'package:my_flutter_app/states/client.dart';
+import 'package:top_express/api/clients/index.dart';
+import 'package:top_express/common/alert_dialog.dart';
+import 'package:top_express/common/loading.dart';
+import 'package:top_express/constants.dart';
+import 'package:top_express/login/LoginForm.dart';
+import 'package:top_express/login/register/register_page.dart';
+import 'package:top_express/pages/main_tab_container.dart';
+import 'package:top_express/states/client.dart';
 import 'package:provider/provider.dart';
-
+import 'package:top_express/utils/database.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -20,6 +18,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  Map<String, String> newClient = {};
+  Future _clientFuture;
   final HttpClientService _httpClientService = HttpClientService();
   bool _isSelected = false;
   String _username = '';
@@ -29,6 +29,7 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
       super.initState();
       _loading = false;
+      _clientFuture = getClient();
   }
   void _radio() {
     setState(() {
@@ -36,9 +37,26 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
+  getClient() async {
+    final _clientData = await DBProvider.db.getClient();
+    if(_clientData != null){
+        _username = _clientData['username'];
+        _password = _clientData['password'];
+        try {
+          var response = await onSubmit();
+        if(!(response['statusOperation'].toString() != null &&  response['statusOperation']['code'].toString() == '0')){
+          DBProvider.db.deleteClient();
+        }
+      } catch (error){
+        //Usuario esta guardado pero no hay conexxion a internet
+        loginError('No existe conexion con el servidor');
+      }
+    }
+    return _clientData;
+  }
+
   login(value){
     if(value['statusOperation'].toString() != null &&  value['statusOperation']['code'].toString() == '0'){
-      //print("ABC: ${value['data']}");
       setState(() {
         _loading = false;
       });
@@ -48,14 +66,18 @@ class _LoginPageState extends State<LoginPage> {
         const body = [
           Text("Se envio un correo de confirmacion, favor de confirmar el usuario mediante el correo")
         ];
-        CustomAlertDialog(context,title, body, 1);
+        CustomAlertDialog(this.context,title, body, 1);
       } else {
-        final client = Provider.of<Client>(context, listen: false);
+        final client = Provider.of<Client>(this.context, listen: false);
         client.setData(clientJson); 
+        client.setPassword(_password); 
+        if(_isSelected){
+          DBProvider.db.newClient(client);
+        }
         _username = '';
         _password = '';
         Navigator.push(
-          context, 
+          this.context, 
           MaterialPageRoute(builder: (context) => TabViewContainer()),
         );
       }
@@ -86,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
 
   register(){
     Navigator.push(
-      context,
+      this.context,
       MaterialPageRoute(
         builder: (context) => RegisterPage(),
       ),
@@ -136,26 +158,15 @@ Future<Map<String, dynamic>> onSubmit() async{
     });
     try{
       var body = json.encode({"username": _username, 'password': _password});
-      var a = _httpClientService.loginClient( body );
-      a.then(
-        (value) => {
-          login(value)
-      }
-      );
-      a.catchError((onError) => {
-       loginError(onError)
-      });
-      return a;
+      var response = await _httpClientService.loginClient( body );
+      login(response);
+      return response;
     } on Exception catch (exception) {
       // only executed if error is of type Exception
-      setState(() {
-        _loading = false;
-      });
+      //loginError(exception);
       throw 'Exception';
     } catch (error) {
-      setState(() {
-        _loading = false;
-      });
+      //loginError(error);
       throw 'Error'; // executed for errors of all types other than Exception
     }
     
@@ -267,15 +278,18 @@ Future<Map<String, dynamic>> onSubmit() async{
                         decoration: BoxDecoration(color: Colors.transparent),
                         child: Row(
                         children: <Widget>[
+                          
                           SizedBox(width: 12.0,),
                           GestureDetector(
                             onTap: _radio,
                             child: radioButton(_isSelected),
                           ),
                           SizedBox(width: 8.0,),
+                          
                           Text("Remember me",
                               style: TextStyle(
                                   fontSize: 12, fontFamily: "Poppins-Medium", color: Colors.black))
+                          
                         ],
                       )
                       ),
@@ -298,7 +312,13 @@ Future<Map<String, dynamic>> onSubmit() async{
                           child: Material(
                             color: Colors.transparent,
                             child: InkWell(
-                              onTap: onSubmit,
+                              onTap: () async {
+                                try {
+                                  await onSubmit();
+                                } catch (e) {
+                                  loginError(e);
+                                }
+                              },
                               child: RaisedButton(
                                 child: Center(
                                 child: Text("SIGNIN",
