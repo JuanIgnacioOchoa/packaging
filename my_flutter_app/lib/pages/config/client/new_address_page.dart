@@ -41,7 +41,7 @@ class _NewAddressPageState extends State<NewAddressPage>{
   submitSuccess(value, client){
     if(value['statusOperation'].toString() != null &&  value['statusOperation']['code'].toString() == '0'){
       
-      client.setNewAddress(value["data"]["address"]);
+      client.setNewAddressClient(value["data"]["address"]);
       const title = Text("Registro Exitoso");
       const body = [
         Text("Ya puedes utilizar la dirección ingresada.")

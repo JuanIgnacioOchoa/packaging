@@ -157,16 +157,18 @@ Future<Map<String, dynamic>> onSubmit() async{
       _loading = true;
     });
     try{
-      var body = json.encode({"username": _username, 'password': _password});
+      var body = jsonEncode({"username": _username, "password": _password});
       var response = await _httpClientService.loginClient( body );
       login(response);
       return response;
     } on Exception catch (exception) {
       // only executed if error is of type Exception
       //loginError(exception);
+      print('Error: ' + exception.toString());
       throw 'Exception';
     } catch (error) {
       //loginError(error);
+      print('Error: ' + error.toString());
       throw 'Error'; // executed for errors of all types other than Exception
     }
     

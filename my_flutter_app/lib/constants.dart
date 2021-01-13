@@ -13,7 +13,7 @@ const PASSWORD = "kjaoisdu091n2,m9xu09123l";
 final BASIC_AUTH = 'Basic ' + base64Encode(utf8.encode('$USERNAME:$PASSWORD'));
       
 final HEADER_JSON = {
-  'Content-type' : 'application/json', 
+  'Content-type' : 'application/json; charset=UTF-8', 
   'Accept': 'application/json',
   'authorization': BASIC_AUTH
 };

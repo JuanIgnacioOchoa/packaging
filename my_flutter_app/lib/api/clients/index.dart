@@ -5,12 +5,13 @@ import 'dart:convert';
 
 class HttpClientService {
   Future<Map<String, dynamic>> loginClient(body) async {
-    Response res = await post(LOGIN_URL, body: body, headers: HEADER_JSON);
+    var _body = body;
     try{
+      Response res = await post(LOGIN_URL, headers: HEADER_JSON, body: _body);
       Map<String, dynamic> body = jsonDecode(res.body);
       return body;
     } catch(e){
-      print("Error on loginClient " + e);
+      print("Error on loginClient " + e.toString());
       return e;
     }
   }

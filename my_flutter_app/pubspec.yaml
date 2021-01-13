@@ -40,6 +40,7 @@ dependencies:
   autocomplete_textfield: ^1.6.4
   sqflite:
   flutter_image_compress: ^0.7.0
+  path_provider: ^1.6.27
 
 dev_dependencies:
   flutter_test:

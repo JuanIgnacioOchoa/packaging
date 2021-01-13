@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:async/async.dart';
 import 'package:flutter/services.dart';
@@ -53,7 +53,7 @@ class HttpPackagesService {
       Map<String, dynamic> body = jsonDecode(res.body);
       return body;
     } catch(e){
-      print("Error on loginClient " + e);
+      print("Error on loginClient " + e.toString());
       return e;
     }
   }
@@ -64,12 +64,16 @@ Future<File> compressFile(File file) async {
   // Create output file path
   // eg:- "Volume/VM/abcd_out.jpeg"
   print('Comp: ' + file.absolute.path);
+  print('Comp: ' + filePath);
   final lastIndex = filePath.lastIndexOf(new RegExp(r'.jp'));
   final splitted = filePath.substring(0, (lastIndex));
   //final outPath = "/Users/juanochoa/Library/Developer/CoreSimulator/Devices/9D050230-F4F6-469F-B106-66621D8DD11E/data/Media/DCIM/100APPLE/IMG_0006_out.jpg";
   final outPath = "${splitted}_out${filePath.substring(lastIndex)}";
+  var dir = await getTemporaryDirectory();
+  var targetPath = dir.absolute.path + "/temp.jpg";
   var result = await FlutterImageCompress.compressAndGetFile(
-    file.absolute.path, outPath,
+    file.absolute.path, 
+    targetPath,
     quality: 5,
   );
   return result;

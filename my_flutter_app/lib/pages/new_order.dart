@@ -271,7 +271,7 @@ class _NewOrderState extends State<NewOrder>{
         if(searchTextField.textField.controller.text != '' && selectedSupplier.name != ''){
           packageMap["idSupplier"] = selectedSupplier.id;
         } else {
-          packageMap['supplierName'] = selectedSupplier.name;
+          packageMap['supplierName'] = searchTextField.textField.controller.text;
         }
       }
       //map['packages'] = [packageMap];
@@ -707,8 +707,6 @@ class _NewOrderState extends State<NewOrder>{
         return a.name.compareTo(b.name);
       },
       itemSubmitted: (item){
-        print(item.id);
-        print(item.name);
         setState(() {
           searchTextField.textField.controller.text = item.name;
           selectedSupplier = item;
